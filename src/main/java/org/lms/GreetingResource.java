@@ -1,6 +1,6 @@
 package org.lms;
 
-import org.lms.Entity.Department;
+import org.lms.Model.Department;
 import org.lms.Repository.DepartmentRepository;
 
 import jakarta.inject.Inject;

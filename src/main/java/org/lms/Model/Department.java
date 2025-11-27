@@ -1,4 +1,4 @@
-package org.lms.Entity;
+package org.lms.Model;
 
 import java.util.UUID;
 

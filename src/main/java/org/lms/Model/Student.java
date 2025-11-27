@@ -1,12 +1,12 @@
-package org.lms.Entity;
+package org.lms.Model;
 
 import java.util.UUID;
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "admin")
-public class Admin {
+@Table(name = "student")
+public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
@@ -15,6 +15,9 @@ public class Admin {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name = "department_id")
+    private Department department;
 
     public UUID getId() {
         return id;
@@ -24,5 +27,9 @@ public class Admin {
         return user;
     }
 
+    public Department getDepartment() {
+        return department;
+    }
 
+    
 }
