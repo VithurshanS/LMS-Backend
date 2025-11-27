@@ -2,13 +2,7 @@ package org.lms.Entity;
 
 import java.util.UUID;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 
 
@@ -16,7 +10,7 @@ import jakarta.persistence.Table;
 @Table(name = "user")
 public class User {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private UUID id;
     private String name;
     private String email;
@@ -27,7 +21,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    
+
     public void setName(String name) {
         this.name = name;
     }
