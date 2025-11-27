@@ -9,16 +9,16 @@ import jakarta.persistence.*;
 public class Lecturer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     @Column(name = "lecturer_id")
     private UUID id;
 
     @OneToOne(cascade= CascadeType.ALL)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(cascade=CascadeType.ALL)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "department_id")
     private Department department;
 
     @OneToMany(mappedBy="lecturer")

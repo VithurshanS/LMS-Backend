@@ -10,16 +10,16 @@ import jakarta.persistence.*;
 public class Module {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue
     @Column(name="module_id")
     private UUID id;
 
-    @Column(unique=true,name="modulecode")
+    @Column(unique=true,name="modulecode",columnDefinition = "varchar(7)")
     private String module_code;
 
     private String name;
 
-    private int limit;
+    private int enrollmentLimit;
 
     @ManyToOne
     @JoinColumn(name="department_id")
@@ -69,7 +69,7 @@ public class Module {
     }
 
     public int getLimit() {
-        return limit;
+        return enrollmentLimit;
     }
 
     public Department getDepartment() {
@@ -89,7 +89,7 @@ public class Module {
     }
 
     public void setLimit(int limit) {
-        this.limit = limit;
+        this.enrollmentLimit = limit;
     }
 
     public void setDepartment(Department department) {

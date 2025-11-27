@@ -9,7 +9,7 @@ import jakarta.persistence.*;
 @Table(name = "admin")
 public class Admin {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     @Column(name = "admin_id")
     private UUID id;
 
