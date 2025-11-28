@@ -103,8 +103,6 @@ public class AdminTest {
         
         assert createdModules != null : "Created modules should not be null";
         assert createdModules.size() == 2 : "Expected 2 modules, found: " + createdModules.size();
-        
-        // Verify the modules are the correct ones
         boolean foundModule1 = false;
         boolean foundModule2 = false;
         for (org.lms.Model.Module module : createdModules) {
