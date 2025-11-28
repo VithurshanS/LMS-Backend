@@ -21,7 +21,7 @@ public class Module {
     @Column(name="module_id")
     private UUID id;
 
-    @Column(unique=true,name="modulecode",columnDefinition = "varchar(7)")
+    @Column(unique=true,name="modulecode",columnDefinition = "varchar(7)",nullable=false)
     private String module_code;
 
     private String name;

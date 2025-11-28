@@ -1,8 +1,15 @@
 package org.lms.Model;
 
+import java.util.List;
 import java.util.UUID;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "department")
@@ -14,6 +21,21 @@ public class Department {
 
     @Column(nullable=false)
     private String name;
+
+    @OneToMany(mappedBy="department",cascade=CascadeType.ALL)
+    private List<Lecturer> lectureList;
+
+    @OneToMany(mappedBy="department",cascade=CascadeType.ALL)
+    private List<Student> studentList;
+
+
+    public List<Student> getStudentList(){
+        return this.studentList;
+    }
+
+    public List<Lecturer> getLecturerList(){
+        return this.lectureList;
+    }
 
     public Department() {}
 
