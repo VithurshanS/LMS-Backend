@@ -10,7 +10,7 @@ import jakarta.ws.rs.core.MediaType;
 
 
 @Path("/")
-public class user{
+public class HomeController {
 
     @Inject
     SecurityIdentity identity;

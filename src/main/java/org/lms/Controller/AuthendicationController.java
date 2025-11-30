@@ -37,6 +37,7 @@ public class AuthendicationController {
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response login(LoginRequest credentials){
         return userService.loginUser(credentials);
     }

@@ -114,6 +114,15 @@
           "clientRole": true,
           "containerId": "3be12b30-d6a8-4208-a7a0-4e7cf4f41a7c",
           "attributes": {}
+        },
+        {
+          "id": "90b4c766-22c1-4cb7-a958-13da8fa6682a",
+          "name": "admin",
+          "description": "",
+          "composite": false,
+          "clientRole": true,
+          "containerId": "3be12b30-d6a8-4208-a7a0-4e7cf4f41a7c",
+          "attributes": {}
         }
       ],
       "realm-management": [
@@ -829,6 +838,16 @@
               "/api/student"
             ],
             "icon_uri": ""
+          },
+          {
+            "name": "admin-resource",
+            "ownerManagedAccess": true,
+            "displayName": "admin's resources",
+            "attributes": {},
+            "uris": [
+              "/admin/*"
+            ],
+            "icon_uri": ""
           }
         ],
         "policies": [
@@ -884,6 +903,17 @@
             }
           },
           {
+            "name": "admin-approve-policy",
+            "description": "",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "fetchRoles": "false",
+              "roles": "[{\"id\":\"lms-iam/admin\",\"required\":false}]"
+            }
+          },
+          {
             "name": "home-access",
             "description": "",
             "type": "resource",
@@ -914,6 +944,17 @@
             "config": {
               "resources": "[\"student-resource\"]",
               "applyPolicies": "[\"lecturer-access-policy\",\"student-access-policy\"]"
+            }
+          },
+          {
+            "name": "admin-permission",
+            "description": "permissions given to admins",
+            "type": "resource",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"admin-resource\"]",
+              "applyPolicies": "[\"admin-approve-policy\"]"
             }
           }
         ],

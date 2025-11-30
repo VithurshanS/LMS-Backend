@@ -2,11 +2,13 @@ package org.lms.Service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 
 import org.eclipse.microprofile.config.inject.ConfigProperties;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
@@ -83,6 +85,24 @@ public class UserService {
 
     }
 
+    public Response approveLecturer(String userId){
+        UsersResource ur = keycloak.realm("ironone").users();
+        try{
+            // This line WILL FAIL if userId is "shan"
+            UserRepresentation user = ur.get(userId).toRepresentation();
+
+            user.setEnabled(true);
+            user.setEmailVerified(true); // Mark email as verified so they don't get prompted
+
+            ur.get(userId).update(user);
+            return Response.ok("lecturer approved").build();
+        } catch (NotFoundException e) {
+            return Response.status(404).entity("User ID not found. Did you send a username instead of a UUID?").build();
+        } catch (Exception e){
+            return Response.status(400).entity(e.toString()).build();
+        }
+    }
+
     private boolean validRole(String role) {
         return (role.equals("lecturer") || role.equals("student"));
     }
@@ -93,7 +113,12 @@ public class UserService {
         user.setEmail(userDto.email);
         user.setFirstName(userDto.firstName);
         user.setLastName(userDto.lastName);
-        user.setEnabled(true);
+        if(userDto.role.equals("lecturer")){
+            user.setEnabled(false);
+        }else{
+            user.setEnabled(true);
+        }
+
         user.setEmailVerified(true);
         user.setCredentials(Collections.singletonList(prepareCredential(userDto.password)));
         return user;
