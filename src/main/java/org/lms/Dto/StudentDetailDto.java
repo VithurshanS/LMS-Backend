@@ -5,7 +5,7 @@ import org.lms.Model.Department;
 import java.util.UUID;
 
 public class StudentDetailDto {
-    public UUID lecturerId;
-    public UserDetailDto lecturerUserDetail;
+    public UUID studentId;
+    public UserDetailDto studentUserDetail;
     public Department department;
 }
