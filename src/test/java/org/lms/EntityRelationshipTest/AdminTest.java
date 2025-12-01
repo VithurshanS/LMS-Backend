@@ -6,13 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.lms.Model.Admin;
 import org.lms.Model.Lecturer;
-import org.lms.Model.User;
+import org.lms.Model.UserDB;
 import org.lms.Repository.AdminRepository;
 import org.lms.Repository.DepartmentRepository;
-import org.lms.Repository.EnrollmentRepository;
 import org.lms.Repository.LecturerRepository;
 import org.lms.Repository.ModuleRepository;
-import org.lms.Repository.StudentRepository;
 import org.lms.Repository.UserRepository;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -27,9 +25,6 @@ public class AdminTest {
     LecturerRepository lecturerRepository;
 
     @Inject
-    StudentRepository studentRepository;
-
-    @Inject
     UserRepository userRepository;
 
     @Inject
@@ -41,34 +36,31 @@ public class AdminTest {
     @Inject
     AdminRepository adminRepository;
 
-    @Inject
-    EnrollmentRepository enrollmentRepository;
-
 
 
     @Test
     @Transactional
     public void createAdminTestValid(){
-        User foundAdminUser = TestHelper.createAdminUser(userRepository, "admin_valid_123","admin@lms.com");
+        UserDB foundAdminUserDB = TestHelper.createAdminUser(userRepository, "admin_valid_123","admin@lms.com");
         
-        Admin admin = new Admin(foundAdminUser);
+        Admin admin = new Admin(foundAdminUserDB);
         adminRepository.persist(admin);
         adminRepository.flush();
         adminRepository.getEntityManager().clear();
 
         Admin admin1 = adminRepository.findById(admin.getId());
         assert(admin1 != null);
-        assert(admin1.getUser().getEmail().equals("admin@lms.com"));
-        assert(admin1.getUser().getUsername().equals("admin_valid_123"));
+        assert(admin1.getUserId().toString().equals(foundAdminUserDB.getId().toString()));
     }
 
     @Test
     @Transactional
     public void createAdminWithWrongRole(){
-        User foundStudentUser = TestHelper.createStudentUser(userRepository, "student_wrong_123","student123@lms.com");
+        UserDB foundStudentUserDB = TestHelper.createStudentUser(userRepository, "student_wrong_123","student123@lms.com");
   
         try {
-            Admin admin = new Admin(foundStudentUser);
+            @SuppressWarnings("unused")
+            Admin admin = new Admin(foundStudentUserDB);
             assert false : "Should throw IllegalArgumentException";
         } catch (IllegalArgumentException e) {
             assert true;
@@ -78,10 +70,11 @@ public class AdminTest {
     @Test
     @Transactional
     public void createAdminWithWrongRole2(){
-        User foundLecturerUser = TestHelper.createLecturerUser(userRepository, "lecturer_wrong_123","lecturer123@lms.com");
+        UserDB foundLecturerUserDB = TestHelper.createLecturerUser(userRepository, "lecturer_wrong_123","lecturer123@lms.com");
   
         try {
-            Admin admin = new Admin(foundLecturerUser);
+            @SuppressWarnings("unused")
+            Admin admin = new Admin(foundLecturerUserDB);
             assert false : "Should throw IllegalArgumentException";
         } catch (IllegalArgumentException e) {
             assert true;

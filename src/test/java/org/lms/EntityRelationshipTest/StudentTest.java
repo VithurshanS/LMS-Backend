@@ -8,7 +8,7 @@ import org.lms.Model.Department;
 import org.lms.Model.Enrollment;
 import org.lms.Model.Lecturer;
 import org.lms.Model.Student;
-import org.lms.Model.User;
+import org.lms.Model.UserDB;
 import org.lms.Repository.AdminRepository;
 import org.lms.Repository.DepartmentRepository;
 import org.lms.Repository.EnrollmentRepository;
@@ -63,12 +63,13 @@ public class StudentTest {
     @Test
     @Transactional
     public void createStudentWithWrongRole(){
-        User foundlecturerUser = TestHelper.createLecturerUser(userRepository, "lecturer123","lecturer123@lms.com");
+        UserDB foundlecturerUserDB = TestHelper.createLecturerUser(userRepository, "lecturer123","lecturer123@lms.com");
         Department foundCsDept = departmentRepository.find("name", "Computer Science").firstResult();
   
         
         try {
-            Student student = new Student(foundlecturerUser, foundCsDept);
+            @SuppressWarnings("unused")
+            Student student = new Student("lecturer123", foundCsDept);
             assert false : "Should throw IllegalArgumentException";
         } catch (IllegalArgumentException e) {
             assert true;
@@ -78,12 +79,13 @@ public class StudentTest {
     @Test
     @Transactional
     public void createLecturerWithWrongRole2(){
-        User foundAdminUser = TestHelper.createAdminUser(userRepository, "admin123","admin123@lms.com");
+        UserDB foundAdminUserDB = TestHelper.createAdminUser(userRepository, "admin123","admin123@lms.com");
         Department foundCsDept = departmentRepository.find("name", "Computer Science").firstResult();
   
         
         try {
-            Student student = new Student(foundAdminUser, foundCsDept);
+            @SuppressWarnings("unused")
+            Student student = new Student("admin123", foundCsDept);
             assert false : "Should throw IllegalArgumentException";
         } catch (IllegalArgumentException e) {
             assert true;

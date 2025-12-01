@@ -1,13 +1,8 @@
 package org.lms.EntityRelationshipTest;
 
-import org.lms.Model.Admin;
-import org.lms.Model.Department;
-import org.lms.Model.Enrollment;
-import org.lms.Model.Lecturer;
+import org.lms.Model.*;
 import org.lms.Model.Module;
-import org.lms.Model.Student;
-import org.lms.Model.User;
-import org.lms.Model.UserRole;
+import org.lms.Model.UserDB;
 import org.lms.Repository.AdminRepository;
 import org.lms.Repository.DepartmentRepository;
 import org.lms.Repository.LecturerRepository;
@@ -15,35 +10,47 @@ import org.lms.Repository.ModuleRepository;
 import org.lms.Repository.UserRepository;
 
 public class TestHelper {
-    public static User createAdminUser(UserRepository userRepository, String username, String email) {
-        User existingUser = userRepository.find("username", username).firstResult();
-        if (existingUser == null) {
-            User user = new User(username, email, UserRole.ADMIN, username, "password");
-            userRepository.persist(user);
+    public static UserDB createAdminUser(UserRepository userRepository, String username, String email) {
+        UserDB existingUserDB = userRepository.find("username", username).firstResult();
+        if (existingUserDB == null) {
+            // Split username as firstName lastName or use default
+            String[] nameParts = username.split("_");
+            String firstName = nameParts.length > 0 ? nameParts[0] : username;
+            String lastName = nameParts.length > 1 ? nameParts[1] : "Admin";
+            UserDB userDB = new UserDB(firstName, lastName, email, UserRole.ADMIN, username, "password");
+            userRepository.persist(userDB);
             userRepository.flush();
             return userRepository.find("username", username).firstResult(); // Return with generated ID
         }
-        return existingUser;
+        return existingUserDB;
     }
-    public static User createLecturerUser(UserRepository userRepository, String username, String email) {
-        User existingUser = userRepository.find("username", username).firstResult();
-        if (existingUser == null) {
-            User user = new User(username, email, UserRole.LECTURER, username, "password");
-            userRepository.persist(user);
+    public static UserDB createLecturerUser(UserRepository userRepository, String username, String email) {
+        UserDB existingUserDB = userRepository.find("username", username).firstResult();
+        if (existingUserDB == null) {
+            // Split username as firstName lastName or use default
+            String[] nameParts = username.split("_");
+            String firstName = nameParts.length > 0 ? nameParts[0] : username;
+            String lastName = nameParts.length > 1 ? nameParts[1] : "Lecturer";
+            UserDB userDB = new UserDB(firstName, lastName, email, UserRole.LECTURER, username, "password");
+            userRepository.persist(userDB);
             userRepository.flush();
             return userRepository.find("username", username).firstResult(); // Return with generated ID
         }
-        return existingUser;
+        return existingUserDB;
     }
-    public static User createStudentUser(UserRepository userRepository, String username, String email) {
-        User existingUser = userRepository.find("username", username).firstResult();
-        if (existingUser == null) {
-            User user = new User(username, email, UserRole.STUDENT, username, "password");
-            userRepository.persist(user);
+    public static UserDB createStudentUser(UserRepository userRepository, String username, String email) {
+        UserDB existingUserDB = userRepository.find("username", username).firstResult();
+        if (existingUserDB == null) {
+            // Split username as firstName lastName or use default
+            String[] nameParts = username.split("_");
+            String firstName = nameParts.length > 0 ? nameParts[0] : username;
+            String lastName = nameParts.length > 1 ? nameParts[1] : "Student";
+            UserDB userDB = new UserDB(firstName, lastName, email, UserRole.STUDENT, username, "password");
+            userRepository.persist(userDB);
             userRepository.flush();
             return userRepository.find("username", username).firstResult(); // Return with generated ID
         }
-        return existingUser;
+        return existingUserDB;
     }
     public static Department createDepartment(DepartmentRepository departmentRepository, String deptName) {
         Department existingDept = departmentRepository.find("name", deptName).firstResult();
@@ -56,11 +63,11 @@ public class TestHelper {
         return existingDept;
     }
     public static Lecturer createLecturer(LecturerRepository lecturerRepository, UserRepository userRepository, DepartmentRepository departmentRepository, String username, String deptName) {
-        User user = createLecturerUser(userRepository, username, username + "@lms.com");
+        UserDB userDB = createLecturerUser(userRepository, username, username + "@lms.com");
         Department department = createDepartment(departmentRepository, deptName);
         Lecturer existingLecturer = lecturerRepository.find("user.username", username).firstResult();
         if (existingLecturer == null) {
-            Lecturer lecturer = new Lecturer(user, department);
+            Lecturer lecturer = new Lecturer(userDB, department);
             lecturerRepository.persist(lecturer);
             lecturerRepository.flush();
             return lecturerRepository.find("user.username", username).firstResult(); // Return with generated ID
@@ -69,23 +76,23 @@ public class TestHelper {
     }
 
     public static Student createStudent(org.lms.Repository.StudentRepository studentRepository, UserRepository userRepository, DepartmentRepository departmentRepository, String username, String deptName) {
-        User user = createStudentUser(userRepository, username, username + "@lms.com");
+        UserDB userDB = createStudentUser(userRepository, username, username + "@lms.com");
         Department department = createDepartment(departmentRepository, deptName);
-        Student existingStudent = studentRepository.find("user.username", username).firstResult();
+        Student existingStudent = studentRepository.find("userId", username).firstResult();
         if (existingStudent == null) {
-            Student student = new Student(user, department);
+            Student student = new Student(username, department);
             studentRepository.persist(student);
             studentRepository.flush();
-            return studentRepository.find("user.username", username).firstResult(); // Return with generated ID
+            return studentRepository.find("userId", username).firstResult();
         }
         return existingStudent;
     }
 
     public static Admin createAdmin(AdminRepository adminRepository, UserRepository userRepository, String username) {
-        User user = createAdminUser(userRepository, username, username + "@lms.com");
+        UserDB userDB = createAdminUser(userRepository, username, username + "@lms.com");
         Admin existingAdmin = adminRepository.find("user.username", username).firstResult();
         if (existingAdmin == null) {
-            Admin admin = new Admin(user);
+            Admin admin = new Admin(userDB);
             adminRepository.persist(admin);
             adminRepository.flush();
             return adminRepository.find("user.username", username).firstResult(); // Return with generated ID
@@ -127,13 +134,13 @@ public class TestHelper {
 
 
     public static void setupSampleUsers(UserRepository userRepository) {
-        User adminUser = new User("Admin User", "admin@lms.com", UserRole.ADMIN, "admin123", "password123");
-        User lecturerUser = new User("Lecturer User", "lecturer@lms.com", UserRole.LECTURER, "lecturer123", "password123");
-        User studentUser = new User("Student User", "student@lms.com", UserRole.STUDENT, "student123", "password123");
+        UserDB adminUserDB = new UserDB("Admin", "User", "admin@lms.com", UserRole.ADMIN, "admin123", "password123");
+        UserDB lecturerUserDB = new UserDB("Lecturer", "User", "lecturer@lms.com", UserRole.LECTURER, "lecturer123", "password123");
+        UserDB studentUserDB = new UserDB("Student", "User", "student@lms.com", UserRole.STUDENT, "student123", "password123");
 
-        userRepository.persist(adminUser);
-        userRepository.persist(lecturerUser);
-        userRepository.persist(studentUser);
+        userRepository.persist(adminUserDB);
+        userRepository.persist(lecturerUserDB);
+        userRepository.persist(studentUserDB);
         userRepository.flush();
     }
 
@@ -149,10 +156,10 @@ public class TestHelper {
     }
 
     public static void setupSampleLecturers(LecturerRepository lecturerRepository, UserRepository userRepository, DepartmentRepository departmentRepository) {
-        User lecturerUser = userRepository.find("username", "lecturer123").firstResult();
+        UserDB lecturerUserDB = userRepository.find("username", "lecturer123").firstResult();
         Department csDept = departmentRepository.find("name", "Computer Science").firstResult();
 
-        Lecturer lecturer = new Lecturer(lecturerUser, csDept);
+        Lecturer lecturer = new Lecturer(lecturerUserDB, csDept);
         lecturerRepository.persist(lecturer);
         lecturerRepository.flush();
     }

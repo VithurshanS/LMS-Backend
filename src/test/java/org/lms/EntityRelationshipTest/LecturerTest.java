@@ -7,7 +7,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.lms.Model.Department;
 import org.lms.Model.Lecturer;
 import org.lms.Model.Module;
-import org.lms.Model.User;
+import org.lms.Model.UserDB;
 import org.lms.Repository.AdminRepository;
 import org.lms.Repository.DepartmentRepository;
 import org.lms.Repository.EnrollmentRepository;
@@ -52,18 +52,19 @@ public class LecturerTest {
         lecturerRepository.flush();
         
         lecturer1 = lecturerRepository.findById(lecturer1.getId());
-        assert(lecturer1.getUser().getEmail().equals("lecturer@lms.com"));
+        assert(lecturer1.getUserId() != null);
     }
 
     @Test
     @Transactional
     public void createLecturerWithWrongRole(){
-        User foundStudentUser = TestHelper.createStudentUser(userRepository, "student123","student123@lms.com");
+        UserDB foundStudentUserDB = TestHelper.createStudentUser(userRepository, "student123","student123@lms.com");
         Department foundCsDept = departmentRepository.find("name", "Computer Science").firstResult();
   
         
         try {
-            Lecturer lecturer = new Lecturer(foundStudentUser, foundCsDept);
+            @SuppressWarnings("unused")
+            Lecturer lecturer = new Lecturer(foundStudentUserDB, foundCsDept);
             assert false : "Should throw IllegalArgumentException";
         } catch (IllegalArgumentException e) {
             assert true;
@@ -73,12 +74,13 @@ public class LecturerTest {
     @Test
     @Transactional
     public void createLecturerWithWrongRole2(){
-        User foundAdminUser = TestHelper.createAdminUser(userRepository, "admin123","admin123@lms.com");
+        UserDB foundAdminUserDB = TestHelper.createAdminUser(userRepository, "admin123","admin123@lms.com");
         Department foundCsDept = departmentRepository.find("name", "Computer Science").firstResult();
   
         
         try {
-            Lecturer lecturer = new Lecturer(foundAdminUser, foundCsDept);
+            @SuppressWarnings("unused")
+            Lecturer lecturer = new Lecturer(foundAdminUserDB, foundCsDept);
             assert false : "Should throw IllegalArgumentException";
         } catch (IllegalArgumentException e) {
             assert true;

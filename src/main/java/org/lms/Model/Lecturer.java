@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import org.lms.User.User;
 
 @Entity
 @Table(name="lecturer")
@@ -24,9 +25,9 @@ public class Lecturer {
     @Column(name = "lecturer_id")
     private UUID id;
 
-    @OneToOne(cascade= CascadeType.ALL)
-    @JoinColumn(name = "user_id")
-    private User user;
+
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @ManyToOne
     @JoinColumn(name = "department_id")
@@ -35,23 +36,24 @@ public class Lecturer {
     @OneToMany(mappedBy = "lecturer", cascade = CascadeType.ALL)
     private List<Module> teachingModules = new ArrayList<>();
 
-    
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
     public Lecturer (){}
 
     public Lecturer(User user, Department department) {
         if (user != null && user.getRole() != UserRole.LECTURER) {
             throw new IllegalArgumentException("User is not a lecturerr");
         }
-        this.user = user;
+        this.userId = user.getId();
         this.department = department;
     }
 
-    public void setUser(User user) {
-        if (user != null && user.getRole() != UserRole.LECTURER) {
-            throw new IllegalArgumentException("User is not a lecturer");
-        }
-        this.user = user;
-    }
 
     public void setDepartment(Department department) {
         this.department = department;
@@ -69,9 +71,8 @@ public class Lecturer {
         return id;
     }
 
-    public User getUser() {
-        return user;
-    }
+
+
 
     public Department getDepartment() {
         return department;

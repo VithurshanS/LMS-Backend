@@ -8,7 +8,6 @@ import org.lms.Model.Student;
 import org.lms.Model.Lecturer;
 import org.lms.Repository.AdminRepository;
 import org.lms.Repository.DepartmentRepository;
-import org.lms.Repository.EnrollmentRepository;
 import org.lms.Repository.LecturerRepository;
 import org.lms.Repository.ModuleRepository;
 import org.lms.Repository.StudentRepository;

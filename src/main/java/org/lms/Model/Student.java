@@ -13,9 +13,10 @@ public class Student {
     @Column(name = "student_id")
     private UUID id;
 
-    @OneToOne(cascade= CascadeType.ALL)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private String userId;
+
+
 
     @ManyToOne
     @JoinColumn(name = "department_id")
@@ -26,19 +27,13 @@ public class Student {
 
     public Student() {}
 
-    public Student(User user, Department department) {
-        if (user != null && user.getRole() != UserRole.STUDENT) {
-            throw new IllegalArgumentException("User is not a student");
-        }
-        this.user = user;
+    public Student(String userId, Department department) {
+        this.userId = userId;
         this.department = department;
     }
 
-    public void setUser(User user) {
-        if (user != null && user.getRole() != UserRole.STUDENT) {
-            throw new IllegalArgumentException("User is not a student");
-        }
-        this.user = user;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public void setDepartment(Department department) {
@@ -57,8 +52,12 @@ public class Student {
         return id;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getStudentUserName(){
+        return userId; // Now returns the userId directly
     }
 
     public Department getDepartment() {

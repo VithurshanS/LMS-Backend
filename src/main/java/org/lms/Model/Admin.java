@@ -4,18 +4,18 @@ import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.*;
+import org.lms.User.User;
 
 @Entity
 @Table(name = "admin")
-public class Admin {
+public class  Admin {
     @Id
     @GeneratedValue
     @Column(name = "admin_id")
     private UUID id;
 
-    @OneToOne(cascade= CascadeType.ALL)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @OneToMany(mappedBy="createdby")
     private List<Module> createdModules;
@@ -26,15 +26,9 @@ public class Admin {
         if (user != null && user.getRole() != UserRole.ADMIN) {
             throw new IllegalArgumentException("User is not a admin");
         }
-        this.user = user;
+        this.userId = user.getId();
     }
 
-    public void setUser(User user) {
-        if (user != null && user.getRole() != UserRole.ADMIN) {
-            throw new IllegalArgumentException("User is not a admin");
-        }
-        this.user = user;
-    }
 
     public List<Module> getCreatedModules() {
         return createdModules;
@@ -48,8 +42,8 @@ public class Admin {
         return id;
     }
 
-    public User getUser() {
-        return user;
+    public UUID getUserId() {
+        return userId;
     }
 
 }
