@@ -6,22 +6,15 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 
-import org.eclipse.microprofile.config.inject.ConfigProperties;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.lms.Dto.LoginRequest;
 import org.lms.Dto.RegistrationRequest;
-import org.lms.Repository.LecturerRepository;
-import org.lms.User.User;
-import org.lms.Model.UserDB;
-import org.lms.Model.UserIAM;
 import org.lms.Model.UserRole;
-import org.lms.Repository.UserRepository;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -41,8 +34,6 @@ public class UserService {
     @ConfigProperty(name = "quarkus.oidc.credentials.secret")
     String clientSecret;
 
-    @Inject
-    UserRepository userRepo;
 
     @Inject
     LecturerService lecturerService;
@@ -55,11 +46,24 @@ public class UserService {
 
     private static final String CLIENT_ID = "lms-iam";
 
-    public User createDatabaseUser(RegistrationRequest request) {
-        return new UserDB(request.firstName, request.lastName, request.email, request.role, request.username, request.password);
+    public UserRole matchRole(String textrole){
+        if(textrole.equals("lecturer")){
+            return UserRole.LECTURER;
+        } else if (textrole.equals("admin")) {
+            return UserRole.ADMIN;
+
+        } else {return UserRole.STUDENT;}
     }
 
-    public UserIAM createIAMUser(RegistrationRequest userDto) {
+    private CredentialRepresentation prepareCredential(String password) {
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(password);
+        credential.setTemporary(false);
+        return credential;
+    }
+
+    public UserRepresentation createIAMUser(RegistrationRequest userDto) {
         UserRepresentation user = new UserRepresentation();
         user.setUsername(userDto.username);
         user.setEmail(userDto.email);
@@ -73,17 +77,10 @@ public class UserService {
 
         user.setEmailVerified(true);
         user.setCredentials(Collections.singletonList(prepareCredential(userDto.password)));
-        return new UserIAM(user);
+        return user;
     }
 
-    public User createUser(RegistrationRequest request, boolean useDatabase) {
-        if (useDatabase) {
-            return createDatabaseUser(request);
-        } else {
 
-            return createIAMUser(request);
-        }
-    }
 
     public void saveUserInDB(UUID userId, UserRole role) {
         try {
@@ -107,7 +104,7 @@ public class UserService {
             return Response.status(400).entity("Role is not acceptable").build();
         }
 
-        UserRepresentation userPackage = createIAMUser(userDto).getUserRepresentation();
+        UserRepresentation userPackage = createIAMUser(userDto);
         UsersResource usersResource = keycloak.realm(realm).users();
 
         try {
@@ -119,7 +116,7 @@ public class UserService {
 
                 if (roleAssigned) {
                     try {
-                        saveUserInDB(UUID.fromString(userId),UserDB.matchRole(userDto.role));
+                        saveUserInDB(UUID.fromString(userId),matchRole(userDto.role));
                         return Response.status(201).entity("User registered successfully").build();
 
                     }catch (Exception e){
@@ -138,22 +135,7 @@ public class UserService {
         }
     }
 
-    @Transactional
-    public User registerUserDB(RegistrationRequest request) {
-        if (!validRole(request.role)) {
-            throw new IllegalArgumentException("Role is not acceptable");
-        }
 
-        UserRole role = UserDB.matchRole(request.role);
-        UserDB user = new UserDB(request.firstName, request.lastName, request.email, request.role, request.username, request.password);
-
-        if (role == UserRole.LECTURER) {
-            user.setActive(false); // Lecturers need approval
-        }
-
-        userRepo.persist(user);
-        return user;
-    }
 
 
     public Response loginUser(LoginRequest credentials) {
@@ -198,13 +180,7 @@ public class UserService {
 
 
 
-    private CredentialRepresentation prepareCredential(String password) {
-        CredentialRepresentation credential = new CredentialRepresentation();
-        credential.setType(CredentialRepresentation.PASSWORD);
-        credential.setValue(password);
-        credential.setTemporary(false);
-        return credential;
-    }
+
 
     private boolean assignRole(UsersResource ur, String userId, String realmName, String role, String clientName) {
         try {
