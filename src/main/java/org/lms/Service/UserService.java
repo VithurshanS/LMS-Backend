@@ -14,6 +14,7 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.lms.Dto.LoginRequest;
 import org.lms.Dto.RegistrationRequest;
+import org.lms.Dto.UserDetailDto;
 import org.lms.Model.UserRole;
 
 import java.net.URI;
@@ -21,6 +22,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -78,6 +80,35 @@ public class UserService {
         user.setEmailVerified(true);
         user.setCredentials(Collections.singletonList(prepareCredential(userDto.password)));
         return user;
+    }
+
+
+
+    public UserDetailDto fetchUserDetail(UUID userId) {
+        UsersResource ur = keycloak.realm("ironone").users();
+
+        try {
+
+            UserRepresentation userRep = ur.get(userId.toString()).toRepresentation();
+
+            UserDetailDto dto = new UserDetailDto();
+            dto.id = UUID.fromString(userRep.getId());
+            dto.userName = userRep.getUsername();
+            dto.email = userRep.getEmail();
+            dto.firstName = userRep.getFirstName();
+            dto.lastName = userRep.getLastName();
+            dto.isActive = userRep.isEnabled();
+            dto.emailVerified = userRep.isEmailVerified();
+
+
+            return dto;
+
+        } catch (NotFoundException e) {
+            throw new RuntimeException("User not found with ID: " + userId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to fetch user details: " + e.getMessage());
+        }
     }
 
 

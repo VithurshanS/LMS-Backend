@@ -1,0 +1,17 @@
+package org.lms.Dto;
+
+import java.util.UUID;
+
+public class UserDetailDto {
+
+    public UUID id;
+    public String userName;
+    public String email;
+    public String firstName;
+    public String lastName;
+    public boolean isActive;
+    public boolean emailVerified;
+    public Long createdTimestamp;
+}
+
+
