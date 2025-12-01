@@ -46,6 +46,11 @@ public class Lecturer {
 
     public Lecturer (){}
 
+    public Lecturer(String userId, Department department) {
+        this.userId = UUID.fromString(userId);
+        this.department = department;
+    }
+
     public Lecturer(User user, Department department) {
         if (user != null && user.getRole() != UserRole.LECTURER) {
             throw new IllegalArgumentException("User is not a lecturerr");

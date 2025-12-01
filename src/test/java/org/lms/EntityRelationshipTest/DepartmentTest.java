@@ -52,8 +52,11 @@ public class DepartmentTest {
     @Transactional
     public void getStudentlist(){
         Department dept = TestHelper.createDepartment(departmentRepository,"Computer Science");
+        @SuppressWarnings("unused")
         Student st1 = TestHelper.createStudent(studentRepository, userRepository, departmentRepository, "student1", "Computer Science");
+        @SuppressWarnings("unused")
         Student st2 = TestHelper.createStudent(studentRepository, userRepository, departmentRepository, "student2", "Computer Science");
+        @SuppressWarnings("unused")
         Student st3 = TestHelper.createStudent(studentRepository, userRepository, departmentRepository, "student3", "Computer Science");
 
         departmentRepository.getEntityManager().clear();

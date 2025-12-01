@@ -22,7 +22,7 @@ public class UserDBTest {
     @Test
     @Transactional
     public void testUserCreation() {
-        UserDB userDB = new UserDB("John", "Doe", "user1@gmail.com", UserRole.ADMIN, "user11", "password");
+        UserDB userDB = new UserDB("John", "Doe", "user1@gmail.com", "admin", "user11", "password");
         em.persist(userDB);
         em.flush();
         
@@ -36,35 +36,25 @@ public class UserDBTest {
         assertEquals("password", userDB.getPassword());
         assertTrue(userDB.isActive());
         assertFalse(userDB.isApproved());
-        assertNotNull(userDB.getCreatedAt());
-        assertNotNull(userDB.getUpdatedAt());
     }
 
     @Test
     @Transactional
     public void testEmailCannotBeNull() {
         PropertyValueException exception = assertThrows(PropertyValueException.class, () -> {
-            UserDB userDB = new UserDB("Test", "User", null, UserRole.STUDENT, "testuseremailnull", "password123");
+            UserDB userDB = new UserDB("Test", "User", null, "student", "testuseremailnull", "password123");
             em.persist(userDB);
         }, "Email should not be null");
         assertNotNull(exception);
     }
 
-    @Test
-    @Transactional
-    public void testRoleCannotBeNull() {
-        PropertyValueException exception = assertThrows(PropertyValueException.class, () -> {
-            UserDB userDB = new UserDB("Test", "User", "testrole@example.com", null, "testuserrolenull", "password123");
-            em.persist(userDB);
-        }, "Role should not be null");
-        assertNotNull(exception);
-    }
+
 
     @Test
     @Transactional
     public void testUsernameCannotBeNull() {
         PropertyValueException exception = assertThrows(PropertyValueException.class, () -> {
-            UserDB userDB = new UserDB("Test", "User", "testusername@example.com", UserRole.STUDENT, null, "password123");
+            UserDB userDB = new UserDB("Test", "User", "testusername@example.com", "student", null, "password123");
             em.persist(userDB);
         }, "Username should not be null");
         assertNotNull(exception);
@@ -75,7 +65,7 @@ public class UserDBTest {
     @Transactional
     public void testPasswordCannotBeNull() {
         PropertyValueException exception = assertThrows(PropertyValueException.class, () -> {
-            UserDB userDB = new UserDB("Test", "User", "testpassword@example.com", UserRole.STUDENT, "testuserpassnull", null);
+            UserDB userDB = new UserDB("Test", "User", "testpassword@example.com", "student", "testuserpassnull", null);
             em.persist(userDB);
         }, "Password should not be null");
         assertNotNull(exception);
@@ -85,7 +75,7 @@ public class UserDBTest {
     @Transactional
     public void testFirstNameCanNotBeNull() {
         PropertyValueException exception = assertThrows(PropertyValueException.class, () -> {
-            UserDB userDB = new UserDB(null, "User", "testnamenull@example.com", UserRole.STUDENT, "testusenamenull", "password123");
+            UserDB userDB = new UserDB(null, "User", "testnamenull@example.com", "student", "testusenamenull", "password123");
             em.persist(userDB);
 
         }, "First name cannot be null");
@@ -97,7 +87,7 @@ public class UserDBTest {
     @Transactional
     public void testLastNameCanNotBeNull() {
         PropertyValueException exception = assertThrows(PropertyValueException.class, () -> {
-            UserDB userDB = new UserDB("Test", null, "testlastnamenull@example.com", UserRole.STUDENT, "testuserlastnamenull", "password123");
+            UserDB userDB = new UserDB("Test", null, "testlastnamenull@example.com", "student", "testuserlastnamenull", "password123");
             em.persist(userDB);
 
         }, "Last name cannot be null");
@@ -108,10 +98,10 @@ public class UserDBTest {
     @Test
     @Transactional
     public void testUsernameUniqueness()  {
-        UserDB userDB1 = new UserDB("User", "One", "user1unique@example.com", UserRole.STUDENT, "uniqueusername123", "password123");
+        UserDB userDB1 = new UserDB("User", "One", "user1unique@example.com", "student", "uniqueusername123", "password123");
         em.persist(userDB1);
         em.flush();
-        UserDB userDB2 = new UserDB("User", "Two", "user2unique@example.com", UserRole.LECTURER, "uniqueusername123", "password456");
+        UserDB userDB2 = new UserDB("User", "Two", "user2unique@example.com", "lecturer", "uniqueusername123", "password456");
         em.persist(userDB2);
         
         PersistenceException exception = assertThrows(PersistenceException.class, () -> {

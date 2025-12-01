@@ -22,6 +22,10 @@ public class  Admin {
 
     public Admin() {}
 
+    public Admin(String userId) {
+        this.userId = UUID.fromString(userId);
+    }
+
     public Admin(User user) {
         if (user != null && user.getRole() != UserRole.ADMIN) {
             throw new IllegalArgumentException("User is not a admin");

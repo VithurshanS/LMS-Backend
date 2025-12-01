@@ -20,6 +20,7 @@ import org.lms.Repository.UserRepository;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 
@@ -66,8 +67,8 @@ public class ModuleTest {
         assert foundModule.getName().equals("Data Structures");
         assert foundModule.getLimit() == 30;
         assert foundModule.getDepartment().getName().equals("Computer Science");
-        assert foundModule.getLecturer().getUserId().toString().contains("lecturer_module1");
-        assert foundModule.getCreatedby().getUserId().toString().contains("admin_module1");
+        assert foundModule.getLecturer().getUserId().toString().equals(lecturer.getUserId().toString());
+        assert foundModule.getCreatedby().getUserId().toString().equals(admin.getUserId().toString());
     }
 
     @Test
@@ -180,7 +181,7 @@ public class ModuleTest {
 
         Module foundModule = moduleRepository.findById(module.getId());
         assert foundModule.getLecturer() != null;
-        assert foundModule.getLecturer().getUserId().toString().contains("lecturer_rel");
+        assert foundModule.getLecturer().getUserId().toString().equals(lecturer.getUserId().toString());
         assert foundModule.getLecturer().getId().equals(lecturer.getId());
     }
 
@@ -198,7 +199,7 @@ public class ModuleTest {
 
         Module foundModule = moduleRepository.findById(module.getId());
         assert foundModule.getCreatedby() != null;
-        assert foundModule.getCreatedby().getUserId().toString().contains("admin_creator");
+        assert foundModule.getCreatedby().getUserId().toString().equals(admin.getUserId().toString());
         assert foundModule.getCreatedby().getId().equals(admin.getId());
     }
 

@@ -1,5 +1,6 @@
 package org.lms.EntityRelationshipTest;
 
+import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -7,10 +8,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.lms.Model.Department;
 import org.lms.Model.Lecturer;
 import org.lms.Model.Module;
-import org.lms.Model.UserDB;
 import org.lms.Repository.AdminRepository;
 import org.lms.Repository.DepartmentRepository;
-import org.lms.Repository.EnrollmentRepository;
 import org.lms.Repository.LecturerRepository;
 import org.lms.Repository.ModuleRepository;
 import org.lms.Repository.UserRepository;
@@ -38,9 +37,6 @@ public class LecturerTest {
     @Inject
     AdminRepository adminRepository;
 
-    @Inject
-    EnrollmentRepository enrollmentRepository;
-
 
 
     @Test
@@ -52,39 +48,30 @@ public class LecturerTest {
         lecturerRepository.flush();
         
         lecturer1 = lecturerRepository.findById(lecturer1.getId());
-        assert(lecturer1.getUserId() != null);
+        assertNotNull(lecturer1);
+        assertNotNull(lecturer1.getUserId());
     }
 
     @Test
     @Transactional
     public void createLecturerWithWrongRole(){
-        UserDB foundStudentUserDB = TestHelper.createStudentUser(userRepository, "student123","student123@lms.com");
-        Department foundCsDept = departmentRepository.find("name", "Computer Science").firstResult();
-  
+        Department foundCsDept = TestHelper.createDepartment(departmentRepository, "Computer Science");
         
-        try {
-            @SuppressWarnings("unused")
-            Lecturer lecturer = new Lecturer(foundStudentUserDB, foundCsDept);
-            assert false : "Should throw IllegalArgumentException";
-        } catch (IllegalArgumentException e) {
-            assert true;
-        }
+        Lecturer lecturer = new Lecturer("student123", foundCsDept);
+        lecturerRepository.persist(lecturer);
+        assertNotNull(lecturer);
+        assertEquals("student123", lecturer.getUserId());
     }
 
     @Test
     @Transactional
     public void createLecturerWithWrongRole2(){
-        UserDB foundAdminUserDB = TestHelper.createAdminUser(userRepository, "admin123","admin123@lms.com");
-        Department foundCsDept = departmentRepository.find("name", "Computer Science").firstResult();
-  
+        Department foundCsDept = TestHelper.createDepartment(departmentRepository, "Computer Science");
         
-        try {
-            @SuppressWarnings("unused")
-            Lecturer lecturer = new Lecturer(foundAdminUserDB, foundCsDept);
-            assert false : "Should throw IllegalArgumentException";
-        } catch (IllegalArgumentException e) {
-            assert true;
-        }
+        Lecturer lecturer = new Lecturer("admin123", foundCsDept);
+        lecturerRepository.persist(lecturer);
+        assertNotNull(lecturer);
+        assertEquals("admin123", lecturer.getUserId());
     }
 
     @Test

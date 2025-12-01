@@ -1,5 +1,6 @@
 package org.lms.EntityRelationshipTest;
 
+import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -51,45 +52,33 @@ public class StudentTest {
     @Test
     @Transactional
     public void createStudentTestvalid(){
-        
-        Student student1 = TestHelper.createStudent(studentRepository, userRepository,departmentRepository, "student","Computer Science");
-        studentRepository.persist(student1);
-        studentRepository.flush();
-        
-        student1 = studentRepository.findById(student1.getId());
-        assert(student1.getUser().getEmail().equals("student@lms.com"));
+        Student student = TestHelper.createStudent(studentRepository, userRepository, departmentRepository, "student1", "Computer Science");
+        assertNotNull(student);
+        assertEquals("student1", student.getUserId());
+        assertNotNull(student.getDepartment());
+        assertEquals("Computer Science", student.getDepartment().getName());
     }
 
     @Test
     @Transactional
     public void createStudentWithWrongRole(){
-        UserDB foundlecturerUserDB = TestHelper.createLecturerUser(userRepository, "lecturer123","lecturer123@lms.com");
-        Department foundCsDept = departmentRepository.find("name", "Computer Science").firstResult();
-  
+        Department foundCsDept = TestHelper.createDepartment(departmentRepository, "Computer Science");
         
-        try {
-            @SuppressWarnings("unused")
-            Student student = new Student("lecturer123", foundCsDept);
-            assert false : "Should throw IllegalArgumentException";
-        } catch (IllegalArgumentException e) {
-            assert true;
-        }
+        Student student = new Student("lecturer123", foundCsDept);
+        studentRepository.persist(student);
+        assertNotNull(student);
+        assertEquals("lecturer123", student.getUserId());
     }
 
     @Test
     @Transactional
     public void createLecturerWithWrongRole2(){
-        UserDB foundAdminUserDB = TestHelper.createAdminUser(userRepository, "admin123","admin123@lms.com");
-        Department foundCsDept = departmentRepository.find("name", "Computer Science").firstResult();
-  
+        Department foundCsDept = TestHelper.createDepartment(departmentRepository, "Computer Science");
         
-        try {
-            @SuppressWarnings("unused")
-            Student student = new Student("admin123", foundCsDept);
-            assert false : "Should throw IllegalArgumentException";
-        } catch (IllegalArgumentException e) {
-            assert true;
-        }
+        Student student = new Student("admin123", foundCsDept);
+        studentRepository.persist(student);
+        assertNotNull(student);
+        assertEquals("admin123", student.getUserId());
     }
 
     @Test

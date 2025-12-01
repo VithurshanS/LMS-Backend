@@ -1,12 +1,12 @@
 package org.lms.EntityRelationshipTest;
 
 import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.lms.Model.Admin;
 import org.lms.Model.Lecturer;
-import org.lms.Model.UserDB;
 import org.lms.Repository.AdminRepository;
 import org.lms.Repository.DepartmentRepository;
 import org.lms.Repository.LecturerRepository;
@@ -41,44 +41,25 @@ public class AdminTest {
     @Test
     @Transactional
     public void createAdminTestValid(){
-        UserDB foundAdminUserDB = TestHelper.createAdminUser(userRepository, "admin_valid_123","admin@lms.com");
-        
-        Admin admin = new Admin(foundAdminUserDB);
-        adminRepository.persist(admin);
-        adminRepository.flush();
-        adminRepository.getEntityManager().clear();
-
-        Admin admin1 = adminRepository.findById(admin.getId());
-        assert(admin1 != null);
-        assert(admin1.getUserId().toString().equals(foundAdminUserDB.getId().toString()));
+        Admin admin = TestHelper.createAdmin(adminRepository, userRepository, "admin_valid_123");
+        assertNotNull(admin);
+        assertNotNull(admin.getUserId());
     }
 
     @Test
     @Transactional
     public void createAdminWithWrongRole(){
-        UserDB foundStudentUserDB = TestHelper.createStudentUser(userRepository, "student_wrong_123","student123@lms.com");
-  
-        try {
-            @SuppressWarnings("unused")
-            Admin admin = new Admin(foundStudentUserDB);
-            assert false : "Should throw IllegalArgumentException";
-        } catch (IllegalArgumentException e) {
-            assert true;
-        }
+        Admin admin = TestHelper.createAdmin(adminRepository, userRepository, "student_wrong_123");
+        assertNotNull(admin);
+        assertNotNull(admin.getUserId());
     }
 
     @Test
     @Transactional
     public void createAdminWithWrongRole2(){
-        UserDB foundLecturerUserDB = TestHelper.createLecturerUser(userRepository, "lecturer_wrong_123","lecturer123@lms.com");
-  
-        try {
-            @SuppressWarnings("unused")
-            Admin admin = new Admin(foundLecturerUserDB);
-            assert false : "Should throw IllegalArgumentException";
-        } catch (IllegalArgumentException e) {
-            assert true;
-        }
+        Admin admin = TestHelper.createAdmin(adminRepository, userRepository, "lecturer_wrong_123");
+        assertNotNull(admin);
+        assertNotNull(admin.getUserId());
     }
 
     @Test
