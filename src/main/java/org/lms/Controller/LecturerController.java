@@ -22,4 +22,8 @@ public class LecturerController {
         return "I am a lecturer Resource";
     }
 
+//    @GET
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public
+
 }

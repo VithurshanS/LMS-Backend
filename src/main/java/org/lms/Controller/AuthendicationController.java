@@ -27,6 +27,13 @@ public class AuthendicationController {
     @Inject
     UserService userService;
 
+    @GET
+    @Path("/sample")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response see(){
+        return Response.ok("vithu").build();
+    }
+
     @POST
     @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)

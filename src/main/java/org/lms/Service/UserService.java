@@ -73,11 +73,13 @@ public class UserService {
         user.setLastName(userDto.lastName);
         if(userDto.role.equals("lecturer")){
             user.setEnabled(false);
+            user.setEmailVerified(false);
         }else{
             user.setEnabled(true);
+            user.setEmailVerified(true);
         }
 
-        user.setEmailVerified(true);
+
         user.setCredentials(Collections.singletonList(prepareCredential(userDto.password)));
         return user;
     }
@@ -188,13 +190,13 @@ public class UserService {
 
     }
 
-    public Response approveLecturer(String userId){
+    public Response approveUser(String userId){
         UsersResource ur = keycloak.realm("ironone").users();
         try{
             UserRepresentation user = ur.get(userId).toRepresentation();
 
             user.setEnabled(true);
-            user.setEmailVerified(true);
+            user.setEmailVerified(true); //email verified if not then user is not approved
 
             ur.get(userId).update(user);
             return Response.ok("lecturer approved").build();
@@ -205,8 +207,19 @@ public class UserService {
         }
     }
 
+    public void controllUserAccess(String userID, String choice){
+        UsersResource ur = keycloak.realm("ironone").users();
+        UserRepresentation user = ur.get(userID).toRepresentation();
+        if(choice.toLowerCase().equals("ban")){ // here i need to add a check to see the user is already banned or not
+            user.setEnabled(false);
+        } else if (choice.toLowerCase().equals("unban")) {
+            user.setEnabled(true);
+        }
+        ur.get(userID).update(user);
+    }
+
     private boolean validRole(String role) {
-        return (role.equals("lecturer") || role.equals("student"));
+        return (role.equals("lecturer") ||role.equals("admin") || role.equals("student"));
     }
 
 

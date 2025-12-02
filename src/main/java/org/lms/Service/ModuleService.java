@@ -4,6 +4,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
+import org.lms.Dto.AdminDetailDto;
+import org.lms.Dto.ModuleDetailDto;
 import org.lms.Dto.StudentDetailDto;
 import org.lms.Model.*;
 import org.lms.Model.Module;
@@ -35,6 +37,31 @@ public class ModuleService {
     @Inject
     StudentService studentService;
 
+    @Inject
+    AdminService adminService;
+
+    @Inject
+    LecturerService lecturerService;
+
+    //Get
+
+    @Transactional
+    public ModuleDetailDto getModule(UUID moduleId){
+        Module mod = moduleRepo.findById(moduleId);
+        AdminDetailDto admin = adminService.getAdminDetail(mod.getCreatedby().getId());
+        ModuleDetailDto dto = new ModuleDetailDto();
+        dto.moduleId = mod.getId();
+        dto.moduleCode = mod.getModule_code();
+        dto.name = mod.getName();
+        dto.enrollmentLimit = mod.getLimit();
+        dto.department = mod.getDepartment();
+        dto.lecturerDetail = lecturerService.getLecturerDetails(mod.getLecturer().getId());
+        dto.createdBy = admin;
+        return dto;
+    }
+
+    //create
+
     @Transactional
     public Module createModule(String code, String name, int limit, UUID departmentId, UUID adminId) {
         Department dept = deptRepo.findById(departmentId);
@@ -43,9 +70,9 @@ public class ModuleService {
         }
 
         Admin admin = adminRepo.findById(adminId);
-        if (admin == null) {
-            throw new NotFoundException("Admin not found. Only Admins can create modules.");
-        }
+//        if (admin == null) {
+//            throw new NotFoundException("Admin not found. Only Admins can create modules.");
+//        }
 
         Module module = new Module();
         module.setModule_code(code);
@@ -57,6 +84,8 @@ public class ModuleService {
         moduleRepo.persist(module);
         return module;
     }
+
+    //patch
 
 
     @Transactional
@@ -75,6 +104,8 @@ public class ModuleService {
     }
 
 
+
+
     public List<StudentDetailDto> getEnrolledStudents(UUID moduleId) {
         Module module = moduleRepo.findById(moduleId);
         if (module == null) {
@@ -90,7 +121,7 @@ public class ModuleService {
 
         return enrollments.stream()
                 .map(Enrollment::getStudent)
-                .map(student -> studentService.getStudentDetails(student.getId())) // Convert to DTO using existing Service
+                .map(student -> studentService.getStudentDetails(student.getId()))
                 .collect(Collectors.toList());
     }
 

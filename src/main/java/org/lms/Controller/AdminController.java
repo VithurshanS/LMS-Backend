@@ -6,6 +6,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.lms.Dto.ApproveRequest;
+import org.lms.Dto.ControlRequest;
 import org.lms.Dto.LecturerDetailDto;
 import org.lms.Dto.StudentDetailDto;
 import org.lms.Service.LecturerService;
@@ -30,7 +31,7 @@ public class AdminController {
     @Path("/approve-lecturer")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response approve(ApproveRequest request){
-        return userService.approveLecturer(request.userId);
+        return userService.approveUser(request.userId);
     }
 
     @GET
@@ -86,6 +87,20 @@ public class AdminController {
             return Response.status(500).entity("Error fetching student: " + e.getMessage()).build();
         }
     }
+
+    @PATCH
+    @Path("/control-user")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response controllUser(ControlRequest cr){
+        try{
+            userService.controllUserAccess(cr.userId, cr.control);
+            return Response.ok("user modified").build();
+        }catch (Exception e){
+            return Response.notModified(e.getMessage()).build();
+        }
+
+    }
+
 
 //    @GET
 //    @Path("/get-lecturers")

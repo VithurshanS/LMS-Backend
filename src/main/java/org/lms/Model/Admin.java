@@ -22,16 +22,11 @@ public class  Admin {
 
     public Admin() {}
 
-    public Admin(String userId) {
-        this.userId = UUID.fromString(userId);
+    public Admin(UUID userId) {
+        this.userId = userId;
     }
 
-    public Admin(User user) {
-        if (user != null && user.getRole() != UserRole.ADMIN) {
-            throw new IllegalArgumentException("User is not a admin");
-        }
-        this.userId = user.getId();
-    }
+
 
 
     public List<Module> getCreatedModules() {
