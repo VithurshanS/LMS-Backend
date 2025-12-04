@@ -81,6 +81,16 @@ public class AdminController {
         }
     }
 
+    @GET
+    @Path("/department/{id}")
+    public Response getDepartmentbyId(@PathParam("id") UUID departmentId){
+        try{
+            return Response.ok(departmentService.getDepartmentById(departmentId)).build();
+        }catch (Exception e){
+            return Response.status(400).entity(e.getMessage()).build();
+        }
+    }
+
     //###########################################  LECTURER #######################
 
     @PATCH
@@ -105,8 +115,7 @@ public class AdminController {
 
     @GET
     @Path("/lecturers-by-dept/{id}") //admin
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllLecturersbyDeptId(@QueryParam("id") UUID deptid) {
+    public Response getAllLecturersbyDeptId(@PathParam("id") UUID deptid) {
         try {
             List<UserResponseDto> lecturers = lecturerService.getLecturerDetailsbyDepartmentId(deptid);
             return Response.ok(lecturers).build();
@@ -148,7 +157,7 @@ public class AdminController {
     @GET
     @Path("/students-by-dept/{id}") //admin
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllStudentssbyDeptId(@QueryParam("id") UUID deptid) {
+    public Response getAllStudentssbyDeptId(@PathParam("id") UUID deptid) {
         try {
             List<UserResponseDto> students = studentService.getStudentDetailsbyDepartmentId(deptid);
             return Response.ok(students).build();
@@ -215,6 +224,7 @@ public class AdminController {
             return Response.status(400).entity(e.getMessage()).build();
         }
     }
+
 
     @GET
     @Path("/getmodule-lect/{id}") //admin + lecturer

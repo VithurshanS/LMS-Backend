@@ -2,14 +2,11 @@ package org.lms.Service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.lms.Dto.ModuleDetailDto;
 import org.lms.Dto.StudentDetailDto;
 import org.lms.Dto.UserDetailDto;
 import org.lms.Dto.UserResponseDto;
 import org.lms.Model.Department;
 import org.lms.Model.Enrollment;
-import org.lms.Model.Lecturer;
-import org.lms.Model.Module;
 import org.lms.Model.Student;
 import org.lms.Repository.EnrollmentRepository;
 import org.lms.Repository.StudentRepository;
@@ -30,7 +27,8 @@ public class StudentService {
     EnrollmentRepository enrollmentRepository;
 
     public void createStudent(UUID userId, Department dept){
-        studRepo.persist(new Student(userId,dept));
+        Student student = new Student(userId, dept);
+        studRepo.persist(student);
     }
 
     public List<Enrollment> getEnrollments(UUID studentId){

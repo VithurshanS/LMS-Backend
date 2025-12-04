@@ -2,7 +2,7 @@ package org.lms.Service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jose4j.jwk.Use;
+import jakarta.transaction.Transactional;
 import org.lms.Dto.LecturerDetailDto;
 import org.lms.Dto.UserDetailDto;
 import org.lms.Dto.UserResponseDto;
@@ -23,8 +23,10 @@ public class LecturerService {
     @Inject
     UserService userService;
 
+    @Transactional
     public void createLecturer(UUID userId, Department dept){
-        lectRepo.persist(new Lecturer(userId,dept));
+        Lecturer lecturer = new Lecturer(userId, dept);
+        lectRepo.persist(lecturer);
     }
 
     public List<Module> getAssignedModules(UUID lecturerId){
@@ -86,10 +88,12 @@ public class LecturerService {
     public List<UserResponseDto> getLecturerDetailsbyDepartmentId(UUID departmentId) {
 
         List<Lecturer> lecturers = lectRepo.findByDepartmentId(departmentId);
+//        if(lecturers.size()==0){
+//            throw new RuntimeException("you repo problem");
+//        }
 
         List<UserResponseDto> output = new ArrayList<>();
         for (Lecturer lecturer : lecturers) {
-            // Reuse the existing logic in getLecturerDetails2 to map Keycloak + DB data
             UserResponseDto dto = getLecturerDetails2(lecturer.getId());
             output.add(dto);
         }

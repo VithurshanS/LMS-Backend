@@ -31,8 +31,8 @@ public class Lecturer {
     private UUID userId;
 
     @ManyToOne
-    @JoinColumn(name = "department_id")
     @JsonIgnore
+    @JoinColumn(name = "department_id")
     private Department department;
 
     @OneToMany(mappedBy = "lecturer", cascade = CascadeType.ALL)

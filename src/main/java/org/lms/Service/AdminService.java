@@ -6,7 +6,6 @@ import org.lms.Dto.AdminDetailDto;
 import org.lms.Dto.UserDetailDto;
 import org.lms.Dto.UserResponseDto;
 import org.lms.Model.Admin;
-import org.lms.Model.Student;
 import org.lms.Repository.AdminRepository;
 
 import java.util.UUID;
@@ -20,7 +19,8 @@ public class AdminService {
     UserService userService;
 
     public void createAdmin(UUID userId){
-        adminRepo.persist(new Admin(userId));
+        Admin admin = new Admin(userId);
+        adminRepo.persist(admin);
     }
 
     public AdminDetailDto getAdminDetail(UUID adminId){

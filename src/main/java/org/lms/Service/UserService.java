@@ -21,6 +21,7 @@ import org.lms.Dto.*;
 import org.lms.Model.Department;
 import org.lms.Model.UserRole;
 import org.lms.Repository.DepartmentRepository;
+import org.lms.Repository.LecturerRepository;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -62,6 +63,9 @@ public class UserService {
 
     @Inject
     Keycloak keycloak;
+
+    @Inject
+    LecturerRepository lectRepo;
 
 //    @Inject
 //    JsonWebToken jwt;
@@ -164,15 +168,20 @@ public class UserService {
 
 
 
-    public void saveUserInDB(UUID userId, UserRole role, Department department) {
+    @Transactional
+    public void saveUserInDB(UUID userId, UserRole role, UUID departmentId) {
         try {
+            Department department = null;
+            if (departmentId != null) {
+                department = deptrepo.findById(departmentId);
+            }
+            
             if(role == UserRole.LECTURER){
-                lecturerService.createLecturer(userId,department);
+                lecturerService.createLecturer(userId, department);
             }else if(role == UserRole.ADMIN){
                 adminService.createAdmin(userId);
             }else{
-                studentService.createStudent(userId,department);
-
+                studentService.createStudent(userId, department);
             }
 
         } catch (Exception e) {
@@ -197,14 +206,10 @@ public class UserService {
             if (res.getStatus() == 201) {
                 String userId = usersResource.search(userDto.username).get(0).getId();
                 boolean roleAssigned = assignRole(usersResource, userId, realm, userDto.role, CLIENT_ID);
-                Department department = null;
-                if(userDto.departmentId!=null){
-                    department = deptrepo.findById(userDto.departmentId);
-                }
 
                 if (roleAssigned) {
                     try {
-                        saveUserInDB(UUID.fromString(userId),matchRole(userDto.role),department);
+                        saveUserInDB(UUID.fromString(userId), matchRole(userDto.role), userDto.departmentId);
                         return Response.status(201).entity("User registered successfully").build();
 
                     }catch (Exception e){
@@ -246,16 +251,17 @@ public class UserService {
 
     }
 
-    public Response approveUser(String userId){
+    public Response approveUser(String lecturerId){
 //        UUID userId = lecturerService.getLecturerDetails(userId)
+        UUID userId = lectRepo.findById(UUID.fromString(lecturerId)).getUserId();
         UsersResource ur = keycloak.realm("ironone").users();
         try{
-            UserRepresentation user = ur.get(userId).toRepresentation();
+            UserRepresentation user = ur.get(userId.toString()).toRepresentation();
 
             user.setEnabled(true);
             user.setEmailVerified(true); //email verified if not then user is not approved
 
-            ur.get(userId).update(user);
+            ur.get(userId.toString()).update(user);
             return Response.ok("lecturer approved").build();
         } catch (NotFoundException e) {
             return Response.status(404).entity("User ID not found. Did you send a username instead of a UUID?").build();
