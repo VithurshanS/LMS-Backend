@@ -1,5 +1,6 @@
 package org.lms.Dto;
 
+import java.util.List;
 import java.util.UUID;
 
 public class UserDetailDto {
@@ -12,6 +13,7 @@ public class UserDetailDto {
     public boolean isActive;
     public boolean emailVerified;
     public Long createdTimestamp;
+    public List<String> clientRole;
 }
 
 

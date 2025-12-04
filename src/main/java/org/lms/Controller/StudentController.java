@@ -6,11 +6,19 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.lms.Dto.ModuleDetailDto;
+import org.lms.Dto.UserResponseDto;
 import org.lms.Model.Enrollment;
 import org.lms.Service.EnrollmentService;
+import org.lms.Service.ModuleService;
 
+import java.util.List;
 import java.util.UUID;
 
+class EnrollRequest{
+    public UUID studentId;
+    public UUID moduleId;
+}
 
 @Path("/api/student")
 public class StudentController {
@@ -18,7 +26,11 @@ public class StudentController {
     @Inject
     SecurityIdentity identity;
 
+    @Inject
+    ModuleService moduleService;
+
     @GET
+    @Path("/test")
     @Produces(MediaType.TEXT_PLAIN)
     public String accessStudentResource(){
         return "I am a student Resource";
@@ -29,18 +41,35 @@ public class StudentController {
 
     @POST
     @Path("/enroll")
-    public Response enrollStudent(@QueryParam("studentId") UUID studentId,
-                                  @QueryParam("moduleId") UUID moduleId) {
+    public Response enrollStudent(EnrollRequest req) {
         try {
-            Enrollment enr = enrollmentService.enrollStudent(studentId, moduleId);
+            Enrollment enr = enrollmentService.enrollStudent(req.studentId, req.moduleId);
             return Response.status(201).entity(enr).build();
         } catch (NotFoundException e) {
             return Response.status(404).entity(e.getMessage()).build();
         } catch (BadRequestException e) {
-            return Response.status(400).entity(e.getMessage()).build(); // "Module full" or "Already enrolled"
+            return Response.status(400).entity(e.getMessage()).build();
         } catch (Exception e) {
             return Response.status(500).entity(e.getMessage()).build();
         }
     }
+
+    @GET
+    @Path("/enrollments/{id}") //lecturer +admin +student
+    public Response getLecturerById(@PathParam("id") UUID studentId) {
+        try {
+            List<ModuleDetailDto> dto = moduleService.getModulesByStudentId(studentId);
+            if (dto == null) {
+                return Response.status(404).entity("Lecturer not found").build();
+            }
+            return Response.ok(dto).build();
+        } catch (Exception e) {
+            return Response.status(500).entity("Error fetching lecturer: " + e.getMessage()).build();
+        }
+    }
+
+
+
+
 
 }

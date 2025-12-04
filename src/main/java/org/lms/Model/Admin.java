@@ -3,8 +3,9 @@ package org.lms.Model;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import org.lms.User.User;
+
 
 @Entity
 @Table(name = "admin")
@@ -14,10 +15,11 @@ public class  Admin {
     @Column(name = "admin_id")
     private UUID id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false,unique = true)
     private UUID userId;
 
     @OneToMany(mappedBy="createdby")
+    @JsonIgnore
     private List<Module> createdModules;
 
     public Admin() {}

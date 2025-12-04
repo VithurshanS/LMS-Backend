@@ -3,6 +3,7 @@ package org.lms.Model;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,16 +14,18 @@ public class Student {
     @Column(name = "student_id")
     private UUID id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false,unique = true)
     private UUID userId;
 
 
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "department_id")
     private Department department;
 
     @OneToMany(mappedBy="student")
+    @JsonIgnore
     private List<Enrollment> studentEnrollments;
 
     public Student() {}

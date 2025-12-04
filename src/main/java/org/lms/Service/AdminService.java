@@ -3,14 +3,9 @@ package org.lms.Service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.lms.Dto.AdminDetailDto;
-import org.lms.Dto.StudentDetailDto;
 import org.lms.Dto.UserDetailDto;
 import org.lms.Model.Admin;
-import org.lms.Model.Department;
-import org.lms.Model.Lecturer;
-import org.lms.Model.Student;
 import org.lms.Repository.AdminRepository;
-import org.lms.Repository.LecturerRepository;
 
 import java.util.UUID;
 

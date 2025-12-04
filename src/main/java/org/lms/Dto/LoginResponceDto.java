@@ -2,7 +2,7 @@ package org.lms.Dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class LoginResponce {
+public class LoginResponceDto {
 
     @JsonProperty("access_token")
     public String accessToken;

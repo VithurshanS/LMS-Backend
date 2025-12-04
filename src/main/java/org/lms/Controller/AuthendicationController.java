@@ -5,18 +5,10 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.keycloak.admin.client.resource.UserResource;
-import org.lms.Dto.LoginRequest;
-import org.lms.Dto.RegistrationRequest;
+import org.lms.Dto.LoginRequestDto;
+import org.lms.Dto.RegistrationRequestDto;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.RoleRepresentation;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.lms.Service.UserService;
-
-import java.util.Collections;
-import java.util.List;
 
 @Path("/auth")
 public class AuthendicationController {
@@ -31,13 +23,13 @@ public class AuthendicationController {
     @Path("/sample")
     @Produces(MediaType.APPLICATION_JSON)
     public Response see(){
-        return Response.ok("vithu").build();
+        return Response.ok("test").build();
     }
 
     @POST
     @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response register(RegistrationRequest userDto) {
+    public Response register(RegistrationRequestDto userDto) {
         return userService.registerUser(userDto,"ironone");
     }
 
@@ -45,7 +37,7 @@ public class AuthendicationController {
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response login(LoginRequest credentials){
+    public Response login(LoginRequestDto credentials){
         return userService.loginUser(credentials);
     }
 }

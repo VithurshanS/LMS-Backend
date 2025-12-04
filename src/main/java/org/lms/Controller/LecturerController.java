@@ -17,6 +17,7 @@ public class LecturerController {
     SecurityIdentity identity;
 
     @GET
+    @Path("/test")
     @Produces(MediaType.TEXT_PLAIN)
     public String accessLectureResource(){
         return "I am a lecturer Resource";

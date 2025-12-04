@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import org.lms.User.User;
+
 
 @Entity
 @Table(name="lecturer")
@@ -26,14 +27,16 @@ public class Lecturer {
     private UUID id;
 
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false,unique = true)
     private UUID userId;
 
     @ManyToOne
     @JoinColumn(name = "department_id")
+    @JsonIgnore
     private Department department;
 
     @OneToMany(mappedBy = "lecturer", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Module> teachingModules = new ArrayList<>();
 
     public UUID getUserId() {
@@ -51,13 +54,6 @@ public class Lecturer {
         this.department = department;
     }
 
-    public Lecturer(User user, Department department) {
-        if (user != null && user.getRole() != UserRole.LECTURER) {
-            throw new IllegalArgumentException("User is not a lecturerr");
-        }
-        this.userId = user.getId();
-        this.department = department;
-    }
 
 
     public void setDepartment(Department department) {

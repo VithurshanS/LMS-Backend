@@ -1,5 +1,6 @@
 package org.lms.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -8,14 +9,20 @@ import jakarta.ws.rs.core.Response;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.RolesResource;
 import org.keycloak.admin.client.resource.UsersResource;
+//import org.keycloak.representations.JsonWebToken;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.RolesRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.lms.Dto.LoginRequest;
-import org.lms.Dto.RegistrationRequest;
+import org.lms.Dto.LoginRequestDto;
+import org.lms.Dto.LoginResponceDto;
+import org.lms.Dto.RegistrationRequestDto;
 import org.lms.Dto.UserDetailDto;
+import org.lms.Model.Department;
 import org.lms.Model.UserRole;
+import org.lms.Repository.DepartmentRepository;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -41,10 +48,22 @@ public class UserService {
     LecturerService lecturerService;
 
     @Inject
+    DepartmentRepository deptrepo;
+
+    @Inject
+    ObjectMapper mapper;
+
+    @Inject
     StudentService studentService;
 
     @Inject
+    AdminService adminService;
+
+    @Inject
     Keycloak keycloak;
+
+//    @Inject
+//    JsonWebToken jwt;
 
     private static final String CLIENT_ID = "lms-iam";
 
@@ -57,6 +76,14 @@ public class UserService {
         } else {return UserRole.STUDENT;}
     }
 
+    public UserDetailDto getProfileFromToken(){
+//        String userId = jwt.getSubject();
+        UserDetailDto user = fetchUserDetail(UUID.fromString("132411df-b6a6-4867-946e-cf35fc6b5736"));
+        return user;
+
+    }
+
+
     private CredentialRepresentation prepareCredential(String password) {
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setType(CredentialRepresentation.PASSWORD);
@@ -65,7 +92,7 @@ public class UserService {
         return credential;
     }
 
-    public UserRepresentation createIAMUser(RegistrationRequest userDto) {
+    public UserRepresentation createIAMUser(RegistrationRequestDto userDto) {
         UserRepresentation user = new UserRepresentation();
         user.setUsername(userDto.username);
         user.setEmail(userDto.email);
@@ -88,10 +115,23 @@ public class UserService {
 
     public UserDetailDto fetchUserDetail(UUID userId) {
         UsersResource ur = keycloak.realm("ironone").users();
+        RolesResource rr = keycloak.realm("ironone").roles();
 
         try {
 
             UserRepresentation userRep = ur.get(userId.toString()).toRepresentation();
+            String clientId = keycloak.realm("ironone").clients()
+                    .findByClientId("lms-iam").get(0).getId();
+
+            List<String> clientRoles = ur.get(userId.toString())
+                    .roles()
+                    .clientLevel(clientId)
+                    .listEffective()
+                    .stream()
+                    .map(RoleRepresentation::getName)
+                    .toList();
+
+
 
             UserDetailDto dto = new UserDetailDto();
             dto.id = UUID.fromString(userRep.getId());
@@ -101,6 +141,7 @@ public class UserService {
             dto.lastName = userRep.getLastName();
             dto.isActive = userRep.isEnabled();
             dto.emailVerified = userRep.isEmailVerified();
+            dto.clientRole = clientRoles;
 
 
             return dto;
@@ -115,12 +156,14 @@ public class UserService {
 
 
 
-    public void saveUserInDB(UUID userId, UserRole role) {
+    public void saveUserInDB(UUID userId, UserRole role, Department department) {
         try {
             if(role == UserRole.LECTURER){
-                lecturerService.createLecturer(userId,null);
-            } else {
-                studentService.createStudent(userId,null);
+                lecturerService.createLecturer(userId,department);
+            }else if(role == UserRole.ADMIN){
+                adminService.createAdmin(userId);
+            }else{
+                studentService.createStudent(userId,department);
 
             }
 
@@ -131,7 +174,7 @@ public class UserService {
 
 
     @Transactional
-    public Response registerUser(RegistrationRequest userDto,String realm) {
+    public Response registerUser(RegistrationRequestDto userDto, String realm) {
 
         if (!validRole(userDto.role)) {
             return Response.status(400).entity("Role is not acceptable").build();
@@ -146,10 +189,14 @@ public class UserService {
             if (res.getStatus() == 201) {
                 String userId = usersResource.search(userDto.username).get(0).getId();
                 boolean roleAssigned = assignRole(usersResource, userId, realm, userDto.role, CLIENT_ID);
+                Department department = null;
+                if(userDto.departmentId!=null){
+                    department = deptrepo.findById(userDto.departmentId);
+                }
 
                 if (roleAssigned) {
                     try {
-                        saveUserInDB(UUID.fromString(userId),matchRole(userDto.role));
+                        saveUserInDB(UUID.fromString(userId),matchRole(userDto.role),department);
                         return Response.status(201).entity("User registered successfully").build();
 
                     }catch (Exception e){
@@ -171,7 +218,8 @@ public class UserService {
 
 
 
-    public Response loginUser(LoginRequest credentials) {
+
+    public Response loginUser(LoginRequestDto credentials) {
         String openidUrl = keycloakUrl+"/protocol/openid-connect/token";
         String requestBody = "client_id="+clientId+ "&client_secret="+clientSecret + "&username=" + credentials.username + "&password=" + credentials.password + "&grant_type=password";
         HttpClient client = HttpClient.newHttpClient();
@@ -179,7 +227,7 @@ public class UserService {
         try{
             HttpResponse<String> res = client.send(request, HttpResponse.BodyHandlers.ofString());
             if(res.statusCode()==200){
-                return Response.status(200).entity(res.body()).build();
+                return Response.status(200).entity(mapper.readValue(res.body(), LoginResponceDto.class)).build();
             }else{
                 return Response.status(400).entity("Authendication failed"+res.body().toString()).build();
             }
@@ -191,6 +239,7 @@ public class UserService {
     }
 
     public Response approveUser(String userId){
+//        UUID userId = lecturerService.getLecturerDetails(userId)
         UsersResource ur = keycloak.realm("ironone").users();
         try{
             UserRepresentation user = ur.get(userId).toRepresentation();
