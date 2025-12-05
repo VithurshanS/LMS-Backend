@@ -24,10 +24,10 @@ public class DepartmentService {
 
 
     @Transactional
-    public Department createDepartment(String name) {
+    public DepartmentDetailDto createDepartment(String name) {
         Department dept = new Department(name);
         deptRepo.persist(dept);
-        return dept;
+        return mapper.convertValue(dept,DepartmentDetailDto.class);
     }
 
     public List<DepartmentDetailDto> getAllDepartments() {

@@ -13,31 +13,6 @@ import java.util.List;
 import java.util.UUID;
 
 
-class DeptCreateRequest{
-    public String name;
-}
-
-class LectAssignRequest{
-    public UUID moduleId;
-    public UUID lecturerId;
-}
-
-class ApproveRequest {
-    public String userId;
-}
-
-class ControlRequest {
-    public String userId;
-    public String control;
-}
-class ModuleCreateRequest {
-    public String code;
-    public String name;
-    public int limit;
-    public UUID departmentId;
-    public UUID adminId;
-}
-
 @Path("/api/admin")
 public class AdminController {
     @Inject
@@ -62,8 +37,8 @@ public class AdminController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createDept(DeptCreateRequest req){
         try{
-            Department dept = departmentService.createDepartment(req.name);
-            return Response.status(201).entity(dept).build();
+
+            return Response.status(201).entity(departmentService.createDepartment(req.name)).build();
 
         }catch (Exception e){
             return Response.status(400).entity(e.getMessage()).build();
@@ -97,7 +72,8 @@ public class AdminController {
     @Path("/approve-lecturer") //admin
     @Consumes(MediaType.APPLICATION_JSON)
     public Response approve(ApproveRequest request){
-        return userService.approveUser(request.userId);
+
+        return userService.approveUser(request.lecturerId);
     }
 
     @GET
@@ -191,7 +167,7 @@ public class AdminController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response controllUser(ControlRequest cr){
         try{
-            userService.controllUserAccess(cr.userId, cr.control);
+            userService.controllUserAccess(cr.id, cr.control,cr.role);
             return Response.ok("user modified").build();
         }catch (Exception e){
             return Response.notModified(e.getMessage()).build();
@@ -206,8 +182,8 @@ public class AdminController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createModule(ModuleCreateRequest request){
         try {
-            moduleService.createModule(request.code, request.name, request.limit, request.departmentId, request.adminId);
-            return Response.status(201).build();
+
+            return Response.status(201).entity(moduleService.createModule(request.code, request.name, request.limit, request.departmentId, request.adminId)).build();
         } catch (Exception e) {
             return Response.status(401).build();
         }

@@ -12,7 +12,7 @@ import org.lms.Service.DepartmentService;
 import org.lms.Service.UserService;
 
 @Path("/auth")
-public class AuthendicationController {
+public class UserController {
 
     @Inject
     Keycloak keycloak;

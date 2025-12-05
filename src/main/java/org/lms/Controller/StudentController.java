@@ -6,6 +6,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.lms.Dto.EnrollRequest;
 import org.lms.Dto.ModuleDetailDto;
 import org.lms.Dto.UserResponseDto;
 import org.lms.Model.Enrollment;
@@ -15,11 +16,6 @@ import org.lms.Service.StudentService;
 
 import java.util.List;
 import java.util.UUID;
-
-class EnrollRequest{
-    public UUID studentId;
-    public UUID moduleId;
-}
 
 @Path("/api/student")
 public class StudentController {
@@ -60,19 +56,7 @@ public class StudentController {
         }
     }
 
-    @GET
-    @Path("/enrollments/{id}") //lecturer +admin +student
-    public Response getLecturerById(@PathParam("id") UUID studentId) {
-        try {
-            List<ModuleDetailDto> dto = moduleService.getModulesByStudentId(studentId);
-            if (dto == null) {
-                return Response.status(404).entity("Lecturer not found").build();
-            }
-            return Response.ok(dto).build();
-        } catch (Exception e) {
-            return Response.status(500).entity("Error fetching lecturer: " + e.getMessage()).build();
-        }
-    }
+
     @GET
     @Path("/students-by-module/{id}") //lecturer +admin +student
     public Response getStudentsByModuleId(@PathParam("id") UUID moduleId) {
@@ -84,6 +68,19 @@ public class StudentController {
             return Response.ok(dto).build();
         } catch (Exception e) {
             return Response.status(500).entity("Error fetching students: " + e.getMessage()).build();
+        }
+    }
+    @GET
+    @Path("/enrollments/{id}") //lecturer +admin +student
+    public Response getLecturerById(@PathParam("id") UUID studentId) {
+        try {
+            List<ModuleDetailDto> dto = moduleService.getModulesByStudentId(studentId);
+            if (dto == null) {
+                return Response.status(404).entity("Lecturer not found").build();
+            }
+            return Response.ok(dto).build();
+        } catch (Exception e) {
+            return Response.status(500).entity("Error fetching lecturer: " + e.getMessage()).build();
         }
     }
 

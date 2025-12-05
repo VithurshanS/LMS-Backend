@@ -11,6 +11,7 @@ public class UserResponseDto {
     @JsonProperty("id")
     public UUID id;
 
+
     @JsonProperty("username")
     public String username;
 

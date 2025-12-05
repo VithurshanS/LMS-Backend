@@ -47,6 +47,12 @@ public class EnrollmentService {
         if (currentEnrollmentCount >= module.getLimit()) {
             throw new BadRequestException("Module is full. Enrollment limit reached (" + module.getLimit() + ").");
         }
+        if(student.getDepartment()!=null && module.getDepartment().getId() != student.getDepartment().getId()){
+            throw  new BadRequestException("student cant enroll to a different department module");
+        }
+        if (student.getDepartment() == null){
+            throw new NotFoundException("department not found");
+        }
 
         Enrollment enrollment = new Enrollment(student, module);
         enrollmentRepo.persist(enrollment);

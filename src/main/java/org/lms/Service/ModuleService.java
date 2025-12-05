@@ -43,6 +43,9 @@ public class ModuleService {
     @Inject
     LecturerService lecturerService;
 
+    @Inject
+    ModuleService moduleService;
+
     //Get
 
     @Transactional
@@ -103,7 +106,7 @@ public class ModuleService {
     //create
 
     @Transactional
-    public Module createModule(String code, String name, int limit, UUID departmentId, UUID adminId) {
+    public ModuleDetailDto createModule(String code, String name, int limit, UUID departmentId, UUID adminId) {
         Department dept = deptRepo.findById(departmentId);
         if (dept == null) {
             throw new NotFoundException("Department not found");
@@ -122,7 +125,8 @@ public class ModuleService {
         module.setCreatedby(admin);
 
         moduleRepo.persist(module);
-        return module;
+        ModuleDetailDto modd = getModule(module.getId());
+        return modd;
     }
 
     //patch
@@ -141,6 +145,7 @@ public class ModuleService {
         }
 
         module.setLecturer(lecturer);
+//        ModuleDetailDto mod = moduleService.getModule(mod)
     }
 
 

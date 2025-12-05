@@ -6,6 +6,7 @@ import java.util.UUID;
 public class UserDetailDto {
 
     public UUID id;
+    public UUID keycloakId;
     public String userName;
     public String email;
     public String firstName;

@@ -22,6 +22,7 @@ import org.lms.Model.Department;
 import org.lms.Model.UserRole;
 import org.lms.Repository.DepartmentRepository;
 import org.lms.Repository.LecturerRepository;
+import org.lms.Repository.StudentRepository;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -66,6 +67,9 @@ public class UserService {
 
     @Inject
     LecturerRepository lectRepo;
+
+    @Inject
+    StudentRepository studRepo;
 
 //    @Inject
 //    JsonWebToken jwt;
@@ -112,11 +116,11 @@ public class UserService {
         user.setLastName(userDto.lastName);
         if(userDto.role.equals("lecturer")){
             user.setEnabled(false);
-            user.setEmailVerified(false);
         }else{
             user.setEnabled(true);
-            user.setEmailVerified(true);
+
         }
+        user.setEmailVerified(true);
 
 
         user.setCredentials(Collections.singletonList(prepareCredential(userDto.password)));
@@ -270,9 +274,19 @@ public class UserService {
         }
     }
 
-    public void controllUserAccess(String userID, String choice){
+    public void controllUserAccess(String id, String choice, String role){
+        String userID;
+        if(role.equals("student")){
+            userID = studRepo.findById(UUID.fromString(id)).getUserId().toString();
+        } else if (role.equals("lecturer")) {
+            userID = lectRepo.findById(UUID.fromString(id)).getUserId().toString();
+        } else{
+            throw new NotFoundException("user cannot be found");
+        }
+
         UsersResource ur = keycloak.realm("ironone").users();
         UserRepresentation user = ur.get(userID).toRepresentation();
+
         if(choice.toLowerCase().equals("ban")){ // here i need to add a check to see the user is already banned or not
             user.setEnabled(false);
         } else if (choice.toLowerCase().equals("unban")) {
