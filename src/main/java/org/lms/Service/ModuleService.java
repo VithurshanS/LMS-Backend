@@ -9,10 +9,7 @@ import org.lms.Dto.ModuleDetailDto;
 import org.lms.Dto.StudentDetailDto;
 import org.lms.Model.*;
 import org.lms.Model.Module;
-import org.lms.Repository.AdminRepository;
-import org.lms.Repository.DepartmentRepository;
-import org.lms.Repository.LecturerRepository;
-import org.lms.Repository.ModuleRepository;
+import org.lms.Repository.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,41 +35,87 @@ public class ModuleService {
     StudentService studentService;
 
     @Inject
+    EnrollmentRepository enrollmentRepository;
+
+    @Inject
     AdminService adminService;
 
     @Inject
     LecturerService lecturerService;
 
+    @Inject
+    ModuleService moduleService;
+
     //Get
 
     @Transactional
-    public ModuleDetailDto getModule(UUID moduleId){
+    public ModuleDetailDto getModule(UUID moduleId) {
+
         Module mod = moduleRepo.findById(moduleId);
-        AdminDetailDto admin = adminService.getAdminDetail(mod.getCreatedby().getId());
+        if (mod == null) {
+            throw new NotFoundException("Module not found for ID: " + moduleId);
+        }
+
         ModuleDetailDto dto = new ModuleDetailDto();
+
         dto.moduleId = mod.getId();
         dto.moduleCode = mod.getModule_code();
         dto.name = mod.getName();
         dto.enrollmentLimit = mod.getLimit();
-        dto.department = mod.getDepartment();
-        dto.lecturerDetail = lecturerService.getLecturerDetails(mod.getLecturer().getId());
-        dto.createdBy = admin;
+        dto.departmentId = (mod.getDepartment() != null)
+                ? mod.getDepartment().getId()
+                : null;
+
+        dto.lecturerId = (mod.getLecturer() != null)
+                ? mod.getLecturer().getId()
+                : null;
+
+        dto.adminId = (mod.getCreatedby() != null)
+                ? mod.getCreatedby().getId()
+                : null;
+        dto.enrolledCount = enrollmentRepository.countByModuleId(mod.getId());
+
         return dto;
     }
+
+
+    public List<ModuleDetailDto> getModulesByDeptId(UUID deptId){
+        List<Module> modules = moduleRepo.findByDepartmentId(deptId);
+
+        return modules.stream()
+                .map(m -> getModule(m.getId()))
+                .toList();
+    }
+
+    public List<ModuleDetailDto> getModulesByLectId(UUID lectId){
+        List<Module> modules = moduleRepo.findByLecturerId(lectId);
+
+        return modules.stream()
+                .map(m -> getModule(m.getId()))
+                .toList();
+    }
+
+    public List<ModuleDetailDto> getModulesByStudentId(UUID studentId){
+        List<Module> modules = enrollmentRepository.findModulesByStudentId(studentId);
+        return modules.stream()
+                .map(m -> getModule(m.getId()))
+                .toList();
+    }
+
 
     //create
 
     @Transactional
-    public Module createModule(String code, String name, int limit, UUID departmentId, UUID adminId) {
+    public ModuleDetailDto createModule(String code, String name, int limit, UUID departmentId, UUID adminId) {
         Department dept = deptRepo.findById(departmentId);
         if (dept == null) {
             throw new NotFoundException("Department not found");
         }
 
         Admin admin = adminRepo.findById(adminId);
-//        if (admin == null) {
-//            throw new NotFoundException("Admin not found. Only Admins can create modules.");
-//        }
+        if (admin == null) {
+            throw new NotFoundException("Admin not found. Only Admins can create modules.");
+        }
 
         Module module = new Module();
         module.setModule_code(code);
@@ -82,7 +125,8 @@ public class ModuleService {
         module.setCreatedby(admin);
 
         moduleRepo.persist(module);
-        return module;
+        ModuleDetailDto modd = getModule(module.getId());
+        return modd;
     }
 
     //patch
@@ -101,29 +145,30 @@ public class ModuleService {
         }
 
         module.setLecturer(lecturer);
+//        ModuleDetailDto mod = moduleService.getModule(mod)
     }
 
 
 
 
-    public List<StudentDetailDto> getEnrolledStudents(UUID moduleId) {
-        Module module = moduleRepo.findById(moduleId);
-        if (module == null) {
-            throw new NotFoundException("Module not found");
-        }
-
-        List<Enrollment> enrollments = module.getModuleEnrollments();
-
-        if (enrollments == null) {
-            return Collections.emptyList();
-        }
-
-
-        return enrollments.stream()
-                .map(Enrollment::getStudent)
-                .map(student -> studentService.getStudentDetails(student.getId()))
-                .collect(Collectors.toList());
-    }
+//    public List<StudentDetailDto> getEnrolledStudents(UUID moduleId) {
+//        Module module = moduleRepo.findById(moduleId);
+//        if (module == null) {
+//            throw new NotFoundException("Module not found");
+//        }
+//
+//        List<Enrollment> enrollments = module.getModuleEnrollments();
+//
+//        if (enrollments == null) {
+//            return Collections.emptyList();
+//        }
+//
+//
+//        return enrollments.stream()
+//                .map(Enrollment::getStudent)
+//                .map(student -> studentService.getStudentDetails(student.getId()))
+//                .collect(Collectors.toList());
+//    }
 
     public List<Module> getAllModules() {
         return moduleRepo.listAll();

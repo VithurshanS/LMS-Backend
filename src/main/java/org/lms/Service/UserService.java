@@ -1,5 +1,6 @@
 package org.lms.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -7,15 +8,21 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.RolesResource;
 import org.keycloak.admin.client.resource.UsersResource;
+
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
+
 import org.keycloak.representations.idm.UserRepresentation;
-import org.lms.Dto.LoginRequest;
-import org.lms.Dto.RegistrationRequest;
-import org.lms.Dto.UserDetailDto;
+import org.lms.Dto.*;
+import org.lms.Model.Department;
 import org.lms.Model.UserRole;
+import org.lms.Repository.DepartmentRepository;
+import org.lms.Repository.LecturerRepository;
+import org.lms.Repository.StudentRepository;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -36,15 +43,36 @@ public class UserService {
     @ConfigProperty(name = "quarkus.oidc.credentials.secret")
     String clientSecret;
 
+    @Inject
+    JsonWebToken jwt;
+
 
     @Inject
     LecturerService lecturerService;
 
     @Inject
+    DepartmentRepository deptrepo;
+
+    @Inject
+    ObjectMapper mapper;
+
+    @Inject
     StudentService studentService;
 
     @Inject
+    AdminService adminService;
+
+    @Inject
     Keycloak keycloak;
+
+    @Inject
+    LecturerRepository lectRepo;
+
+    @Inject
+    StudentRepository studRepo;
+
+//    @Inject
+//    JsonWebToken jwt;
 
     private static final String CLIENT_ID = "lms-iam";
 
@@ -57,6 +85,21 @@ public class UserService {
         } else {return UserRole.STUDENT;}
     }
 
+    public UserResponseDto getProfileFromToken(){
+        String userId = jwt.getSubject();
+        UserDetailDto user = fetchUserDetail(UUID.fromString(userId));
+        if (user.clientRole.contains("admin")){
+            return adminService.getAdminDetails(UUID.fromString(userId));
+        } else if (user.clientRole.contains("lecturer")) {
+            return lecturerService.getLecturerDetails(UUID.fromString(userId));
+
+        }else {
+            return studentService.getStudentDetails(UUID.fromString(userId));
+        }
+
+    }
+
+
     private CredentialRepresentation prepareCredential(String password) {
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setType(CredentialRepresentation.PASSWORD);
@@ -65,7 +108,7 @@ public class UserService {
         return credential;
     }
 
-    public UserRepresentation createIAMUser(RegistrationRequest userDto) {
+    public UserRepresentation createIAMUser(RegistrationRequestDto userDto) {
         UserRepresentation user = new UserRepresentation();
         user.setUsername(userDto.username);
         user.setEmail(userDto.email);
@@ -73,11 +116,11 @@ public class UserService {
         user.setLastName(userDto.lastName);
         if(userDto.role.equals("lecturer")){
             user.setEnabled(false);
-            user.setEmailVerified(false);
         }else{
             user.setEnabled(true);
-            user.setEmailVerified(true);
+
         }
+        user.setEmailVerified(true);
 
 
         user.setCredentials(Collections.singletonList(prepareCredential(userDto.password)));
@@ -88,10 +131,23 @@ public class UserService {
 
     public UserDetailDto fetchUserDetail(UUID userId) {
         UsersResource ur = keycloak.realm("ironone").users();
+        RolesResource rr = keycloak.realm("ironone").roles();
 
         try {
 
             UserRepresentation userRep = ur.get(userId.toString()).toRepresentation();
+            String clientId = keycloak.realm("ironone").clients()
+                    .findByClientId("lms-iam").get(0).getId();
+
+            List<String> clientRoles = ur.get(userId.toString())
+                    .roles()
+                    .clientLevel(clientId)
+                    .listEffective()
+                    .stream()
+                    .map(RoleRepresentation::getName)
+                    .toList();
+
+
 
             UserDetailDto dto = new UserDetailDto();
             dto.id = UUID.fromString(userRep.getId());
@@ -101,6 +157,7 @@ public class UserService {
             dto.lastName = userRep.getLastName();
             dto.isActive = userRep.isEnabled();
             dto.emailVerified = userRep.isEmailVerified();
+            dto.clientRole = clientRoles;
 
 
             return dto;
@@ -115,13 +172,20 @@ public class UserService {
 
 
 
-    public void saveUserInDB(UUID userId, UserRole role) {
+    @Transactional
+    public void saveUserInDB(UUID userId, UserRole role, UUID departmentId) {
         try {
+            Department department = null;
+            if (departmentId != null) {
+                department = deptrepo.findById(departmentId);
+            }
+            
             if(role == UserRole.LECTURER){
-                lecturerService.createLecturer(userId,null);
-            } else {
-                studentService.createStudent(userId,null);
-
+                lecturerService.createLecturer(userId, department);
+            }else if(role == UserRole.ADMIN){
+                adminService.createAdmin(userId);
+            }else{
+                studentService.createStudent(userId, department);
             }
 
         } catch (Exception e) {
@@ -131,7 +195,7 @@ public class UserService {
 
 
     @Transactional
-    public Response registerUser(RegistrationRequest userDto,String realm) {
+    public Response registerUser(RegistrationRequestDto userDto, String realm) {
 
         if (!validRole(userDto.role)) {
             return Response.status(400).entity("Role is not acceptable").build();
@@ -149,7 +213,7 @@ public class UserService {
 
                 if (roleAssigned) {
                     try {
-                        saveUserInDB(UUID.fromString(userId),matchRole(userDto.role));
+                        saveUserInDB(UUID.fromString(userId), matchRole(userDto.role), userDto.departmentId);
                         return Response.status(201).entity("User registered successfully").build();
 
                     }catch (Exception e){
@@ -171,7 +235,8 @@ public class UserService {
 
 
 
-    public Response loginUser(LoginRequest credentials) {
+
+    public Response loginUser(LoginRequestDto credentials) {
         String openidUrl = keycloakUrl+"/protocol/openid-connect/token";
         String requestBody = "client_id="+clientId+ "&client_secret="+clientSecret + "&username=" + credentials.username + "&password=" + credentials.password + "&grant_type=password";
         HttpClient client = HttpClient.newHttpClient();
@@ -179,7 +244,7 @@ public class UserService {
         try{
             HttpResponse<String> res = client.send(request, HttpResponse.BodyHandlers.ofString());
             if(res.statusCode()==200){
-                return Response.status(200).entity(res.body()).build();
+                return Response.status(200).entity(mapper.readValue(res.body(), LoginResponceDto.class)).build();
             }else{
                 return Response.status(400).entity("Authendication failed"+res.body().toString()).build();
             }
@@ -190,15 +255,17 @@ public class UserService {
 
     }
 
-    public Response approveUser(String userId){
+    public Response approveUser(String lecturerId){
+//        UUID userId = lecturerService.getLecturerDetails(userId)
+        UUID userId = lectRepo.findById(UUID.fromString(lecturerId)).getUserId();
         UsersResource ur = keycloak.realm("ironone").users();
         try{
-            UserRepresentation user = ur.get(userId).toRepresentation();
+            UserRepresentation user = ur.get(userId.toString()).toRepresentation();
 
             user.setEnabled(true);
             user.setEmailVerified(true); //email verified if not then user is not approved
 
-            ur.get(userId).update(user);
+            ur.get(userId.toString()).update(user);
             return Response.ok("lecturer approved").build();
         } catch (NotFoundException e) {
             return Response.status(404).entity("User ID not found. Did you send a username instead of a UUID?").build();
@@ -207,9 +274,19 @@ public class UserService {
         }
     }
 
-    public void controllUserAccess(String userID, String choice){
+    public void controllUserAccess(String id, String choice, String role){
+        String userID;
+        if(role.equals("student")){
+            userID = studRepo.findById(UUID.fromString(id)).getUserId().toString();
+        } else if (role.equals("lecturer")) {
+            userID = lectRepo.findById(UUID.fromString(id)).getUserId().toString();
+        } else{
+            throw new NotFoundException("user cannot be found");
+        }
+
         UsersResource ur = keycloak.realm("ironone").users();
         UserRepresentation user = ur.get(userID).toRepresentation();
+
         if(choice.toLowerCase().equals("ban")){ // here i need to add a check to see the user is already banned or not
             user.setEnabled(false);
         } else if (choice.toLowerCase().equals("unban")) {

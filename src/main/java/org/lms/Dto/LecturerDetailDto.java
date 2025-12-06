@@ -7,5 +7,5 @@ import java.util.UUID;
 public class LecturerDetailDto {
         public UUID lecturerId;
         public UserDetailDto lecturerUserDetail;
-        public Department department;
+        public UUID departmentId;
 }

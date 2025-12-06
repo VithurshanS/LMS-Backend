@@ -3,6 +3,7 @@ package org.lms.Model;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,18 +30,22 @@ public class Module {
     private int enrollmentLimit;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name="department_id")
     private Department department;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name="lecturer_id")
     private Lecturer lecturer;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name="admin_id")
     private Admin createdby;
 
     @OneToMany(mappedBy="module")
+    @JsonIgnore
     private List<Enrollment> moduleEnrollments;
 
     
