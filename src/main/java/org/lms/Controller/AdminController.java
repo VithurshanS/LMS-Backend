@@ -5,8 +5,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.lms.Dto.ApproveRequest;
-import org.lms.Dto.ControlRequest;
 import org.lms.Dto.LecturerDetailDto;
 import org.lms.Dto.StudentDetailDto;
 import org.lms.Service.LecturerService;
