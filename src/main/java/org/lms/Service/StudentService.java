@@ -31,9 +31,6 @@ public class StudentService {
         studRepo.persist(student);
     }
 
-    public List<Enrollment> getEnrollments(UUID studentId){
-        return studRepo.findById(studentId).getStudentEnrollments();
-    }
 
     public UserResponseDto getStudentDetails(UUID userId){
         UserResponseDto user = new UserResponseDto();
@@ -61,25 +58,16 @@ public class StudentService {
 
     }
 
-    public List<StudentDetailDto> getAllStudents() {
-        List<Student> students = studRepo.listAll();
-        List<StudentDetailDto> output = new ArrayList<>();
-        for (Student i : students) {
-            StudentDetailDto dto = new StudentDetailDto();
-            dto.studentId = i.getId();
-            dto.departmentId = (i.getDepartment() != null)
-                    ? i.getDepartment().getId()
-                    : null;
-            try {
-                dto.studentUserDetail = userService.fetchUserDetail(i.getUserId());
-            } catch (Exception e) {
-                System.out.println("User not found in Keycloak: " + i.getUserId());
-                dto.studentUserDetail = null;
-            }
-            output.add(dto);
+    public void patchStudent(UserResponseDto update){
+        try{
+            String userId = userService.userIdfromToken();
+            userService.patchUser(userId,update);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return output;
     }
+
+
 
     public UserResponseDto getStudentDetails2(UUID studentId){
         UserResponseDto user = new UserResponseDto();

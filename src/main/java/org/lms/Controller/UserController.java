@@ -1,6 +1,7 @@
 package org.lms.Controller;
 
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -38,6 +39,7 @@ public class UserController {
         return userService.registerUser(userDto,"ironone");
     }
 
+//    @RolesAllowed("admin")
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)

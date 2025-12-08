@@ -35,7 +35,7 @@ public class LecturerController {
     @Inject
     SecurityIdentity identity;
 
-
+    @RolesAllowed("admin")
     @PATCH
     @Path("/approve-lecturer") //admin
     @Consumes(MediaType.APPLICATION_JSON)
@@ -56,6 +56,7 @@ public class LecturerController {
             return Response.status(500).entity("Error fetching lecturers: " + e.getMessage()).build();
         }
     }
+
 
     @RolesAllowed("admin")
     @GET

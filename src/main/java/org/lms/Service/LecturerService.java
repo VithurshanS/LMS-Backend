@@ -100,6 +100,16 @@ public class LecturerService {
         return output;
     }
 
+
+    public void patchLecturer(UserResponseDto update){
+        try{
+            String userId = userService.userIdfromToken();
+            userService.patchUser(userId,update);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<UserResponseDto> getAllLecturers2(){
         List<Lecturer> lecturers = lectRepo.listAll();
         List<UserResponseDto> output = new ArrayList<>();

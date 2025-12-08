@@ -89,6 +89,8 @@ public class StudentController {
 
 
 
+
+
     @RolesAllowed({"admin","student","lecturer"})
     @GET
     @Path("/id/{id}") //lecturer + admin +student

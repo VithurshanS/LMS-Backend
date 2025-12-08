@@ -32,4 +32,9 @@ public class UserResponseDto {
 
     @JsonProperty("isActive")
     public boolean isActive;
+
+    public UserResponseDto(){}
+    public UserResponseDto(boolean isActive){
+        this.isActive = isActive;
+    }
 }

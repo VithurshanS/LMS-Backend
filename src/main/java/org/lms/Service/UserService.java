@@ -71,8 +71,7 @@ public class UserService {
     @Inject
     StudentRepository studRepo;
 
-//    @Inject
-//    JsonWebToken jwt;
+
 
     private static final String CLIENT_ID = "lms-iam";
 
@@ -85,8 +84,12 @@ public class UserService {
         } else {return UserRole.STUDENT;}
     }
 
+    public String userIdfromToken(){
+        return jwt.getSubject();
+    }
+
     public UserResponseDto getProfileFromToken(){
-        String userId = jwt.getSubject();
+        String userId = userIdfromToken();
         UserDetailDto user = fetchUserDetail(UUID.fromString(userId));
         if (user.clientRole.contains("admin")){
             return adminService.getAdminDetails(UUID.fromString(userId));
@@ -108,7 +111,7 @@ public class UserService {
         return credential;
     }
 
-    public UserRepresentation createIAMUser(RegistrationRequestDto userDto) {
+    private UserRepresentation createIAMUser(RegistrationRequestDto userDto) {
         UserRepresentation user = new UserRepresentation();
         user.setUsername(userDto.username);
         user.setEmail(userDto.email);
@@ -126,6 +129,7 @@ public class UserService {
         user.setCredentials(Collections.singletonList(prepareCredential(userDto.password)));
         return user;
     }
+
 
 
 
@@ -274,6 +278,20 @@ public class UserService {
         }
     }
 
+    public void patchUser(String id, UserResponseDto update){
+        UsersResource ur = keycloak.realm("ironone").users();
+        UserRepresentation user = ur.get(id).toRepresentation();
+        if (update.firstName!=null){
+            user.setFirstName(update.firstName);
+        }
+        if(update.lastName!=null){
+            user.setLastName(update.lastName);
+        }
+
+        user.setEnabled(update.isActive);
+        ur.get(id).update(user);
+    }
+
     public void controllUserAccess(String id, String choice, String role){
         String userID;
         if(role.equals("student")){
@@ -284,15 +302,12 @@ public class UserService {
             throw new NotFoundException("user cannot be found");
         }
 
-        UsersResource ur = keycloak.realm("ironone").users();
-        UserRepresentation user = ur.get(userID).toRepresentation();
 
         if(choice.toLowerCase().equals("ban")){ // here i need to add a check to see the user is already banned or not
-            user.setEnabled(false);
+            patchUser(userID,new UserResponseDto(false));
         } else if (choice.toLowerCase().equals("unban")) {
-            user.setEnabled(true);
+            patchUser(userID,new UserResponseDto(true));
         }
-        ur.get(userID).update(user);
     }
 
     private boolean validRole(String role) {
@@ -328,6 +343,8 @@ public class UserService {
             return false;
         }
     }
+
+
 
 
 }

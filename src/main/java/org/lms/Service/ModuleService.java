@@ -173,4 +173,16 @@ public class ModuleService {
     public List<Module> getAllModules() {
         return moduleRepo.listAll();
     }
+
+    public boolean doesModulehasThisLecturer(UUID moduleId,UUID lecturerId){
+        Lecturer lect = moduleRepo.findById(moduleId).getLecturer();
+        if(lect!=null){
+            return lect.getId().equals(lecturerId);
+        }
+        return false;
+    }
+
+    public boolean doesthismodulehaveStudent(UUID moduleId,UUID studentId){
+        return moduleRepo.hasEnrollmentForStudentAndModule(studentId,moduleId);
+    }
 }
